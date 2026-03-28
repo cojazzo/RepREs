@@ -1,0 +1,234 @@
+[
+  [
+    "Seccion",
+    "Variable",
+    "Etiqueta / Pregunta",
+    "Tipo",
+    "Unidad",
+    "Codificacion"
+  ],
+  [
+    "Identificación",
+    "ID_Paciente",
+    "ID del paciente",
+    "Texto",
+    "",
+    "Código único"
+  ],
+  [
+    "Identificación",
+    "Visita",
+    "Visita del protocolo",
+    "Lista",
+    "",
+    "Basal / 3 meses / 6 meses / 12 meses"
+  ],
+  [
+    "Identificación",
+    "Fecha",
+    "Fecha de la visita",
+    "Fecha",
+    "",
+    "AAAA-MM-DD"
+  ],
+  [
+    "Apego",
+    "APEGO_GLOBAL",
+    "¿Ha tomado el medicamento según lo indicado?",
+    "Ordinal",
+    "",
+    "0=Nunca,1=Rara vez,2=A veces,3=Casi siempre,4=Siempre"
+  ],
+  [
+    "Apego",
+    "DOSIS_OLVIDADAS_7D",
+    "En los últimos 7 días, ¿cuántas dosis olvidó?",
+    "Numérico",
+    "dosis",
+    "0–n"
+  ],
+  [
+    "Apego",
+    "SUSP_TRAT",
+    "¿Suspendió el medicamento en algún momento desde la última visita?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Apego",
+    "DIAS_SIN_TX",
+    "Si suspendió, ¿cuántos días estuvo sin tomarlo?",
+    "Numérico",
+    "días",
+    "0–n"
+  ],
+  [
+    "Apego",
+    "MOTIVO_NO_APEGO",
+    "Motivo principal de omisión/suspensión",
+    "Categórica",
+    "",
+    "1=Olvido,2=Efectos adversos,3=Falta de medicamento,4=Decisión propia,5=Indicación médica,6=Otro"
+  ],
+  [
+    "Apego",
+    "RECORDATORIO",
+    "¿Usa recordatorios (alarma, pastillero, app)?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Apego",
+    "ACCESO_TX",
+    "¿Tiene dificultad para conseguir el medicamento?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Eventos adversos",
+    "EA_NUEVO",
+    "¿Ha presentado algún síntoma nuevo desde la última visita?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Eventos adversos",
+    "EA_ATENCION",
+    "¿Requirió atención médica por algún síntoma?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Eventos adversos",
+    "EA_SUSPENSION",
+    "¿Suspendió el tratamiento por malestar?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_MAREO",
+    "Mareo",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_GI",
+    "Náusea o vómito",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_DOLOR_ABD",
+    "Dolor abdominal",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_APETITO",
+    "Disminución de apetito",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_FATIGA",
+    "Debilidad o fatiga",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_DOLOR_RENAL",
+    "Dolor lumbar o renal",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_EDEMA",
+    "Edema en piernas",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_OLIGURIA",
+    "Disminución de orina (oliguria)",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_ESPUMA",
+    "Orina espumosa aumentada",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Síntomas",
+    "EA_IVU",
+    "Infección urinaria diagnosticada",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Clasificación EA",
+    "EA_SEVERIDAD",
+    "Severidad del evento (si aplica)",
+    "Ordinal",
+    "",
+    "1=Leve,2=Moderado,3=Severo"
+  ],
+  [
+    "Clasificación EA",
+    "EA_RELACION",
+    "Relación con el tratamiento (si aplica)",
+    "Ordinal",
+    "",
+    "1=No relacionada,2=Posible,3=Probable,4=Definitiva"
+  ],
+  [
+    "Clasificación EA",
+    "EA_HOSP",
+    "¿Requirió hospitalización?",
+    "Binaria",
+    "",
+    "0=No,1=Sí"
+  ],
+  [
+    "Texto",
+    "EA_DESC",
+    "Descripción del evento adverso",
+    "Texto",
+    "",
+    "Libre"
+  ],
+  [
+    "Texto",
+    "OBSERVACIONES",
+    "Observaciones clínicas",
+    "Texto",
+    "",
+    "Libre"
+  ]
+]

@@ -1,0 +1,832 @@
+[
+  [
+    "ID_Paciente",
+    "Visita",
+    "Fecha",
+    "APEGO_GLOBAL",
+    "DOSIS_OLVIDADAS_7D",
+    "SUSP_TRAT",
+    "DIAS_SIN_TX",
+    "MOTIVO_NO_APEGO",
+    "RECORDATORIO",
+    "ACCESO_TX",
+    "EA_NUEVO",
+    "EA_ATENCION",
+    "EA_SUSPENSION",
+    "EA_MAREO",
+    "EA_GI",
+    "EA_DOLOR_ABD",
+    "EA_APETITO",
+    "EA_FATIGA",
+    "EA_DOLOR_RENAL",
+    "EA_EDEMA",
+    "EA_OLIGURIA",
+    "EA_ESPUMA",
+    "EA_IVU",
+    "EA_SEVERIDAD",
+    "EA_RELACION",
+    "EA_HOSP",
+    "EA_DESC",
+    "OBSERVACIONES"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ],
+  [
+    null,
+    "Basal"
+  ],
+  [
+    null,
+    "3 meses"
+  ],
+  [
+    null,
+    "6 meses"
+  ],
+  [
+    null,
+    "12 meses"
+  ]
+]

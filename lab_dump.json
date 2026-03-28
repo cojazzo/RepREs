@@ -1,0 +1,429 @@
+[
+  [
+    "Variable",
+    "Codigo",
+    "Tipo",
+    "Unidad",
+    "Codificacion"
+  ],
+  [
+    "ID del paciente",
+    "ID",
+    "Texto",
+    "",
+    "Codigo unico"
+  ],
+  [
+    "Edad",
+    "EDAD",
+    "Numerico",
+    "Años",
+    ""
+  ],
+  [
+    "Sexo",
+    "SEXO",
+    "Categorica",
+    "",
+    "1=Masculino, 2=Femenino"
+  ],
+  [
+    "Leucocitos totales",
+    "WBC",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Neutrofilos absolutos",
+    "NEU_ABS",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Linfocitos absolutos",
+    "LINF_ABS",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Monocitos absolutos",
+    "MONO_ABS",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Eosinofilos absolutos",
+    "EOS_ABS",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Basofilos absolutos",
+    "BASO_ABS",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Neutrofilos %",
+    "NEU_PCT",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Linfocitos %",
+    "LINF_PCT",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Monocitos %",
+    "MONO_PCT",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Eosinofilos %",
+    "EOS_PCT",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Basofilos %",
+    "BASO_PCT",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Eritrocitos",
+    "RBC",
+    "Numerico",
+    "x10⁶/µL",
+    ""
+  ],
+  [
+    "Hemoglobina",
+    "HGB",
+    "Numerico",
+    "g/dL",
+    ""
+  ],
+  [
+    "Hematocrito",
+    "HTO",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Volumen corpuscular medio",
+    "VCM",
+    "Numerico",
+    "fL",
+    ""
+  ],
+  [
+    "Hemoglobina corpuscular media",
+    "HCM",
+    "Numerico",
+    "pg",
+    ""
+  ],
+  [
+    "CMHC",
+    "CMHC",
+    "Numerico",
+    "g/dL",
+    ""
+  ],
+  [
+    "RDW",
+    "RDW",
+    "Numerico",
+    "%",
+    ""
+  ],
+  [
+    "Plaquetas",
+    "PLT",
+    "Numerico",
+    "x10³/µL",
+    ""
+  ],
+  [
+    "Volumen plaquetario medio",
+    "VPM",
+    "Numerico",
+    "fL",
+    ""
+  ],
+  [
+    "Glucosa",
+    "GLUC",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "BUN",
+    "BUN",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Urea",
+    "UREA",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Creatinina serica",
+    "CRE_S",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Acido urico",
+    "AC_UR",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Albumina serica",
+    "ALB_S",
+    "Numerico",
+    "g/dL",
+    ""
+  ],
+  [
+    "Colesterol total",
+    "COL_T",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Trigliceridos",
+    "TG",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "HDL",
+    "HDL",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "LDL",
+    "LDL",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Indice aterogenico",
+    "IA",
+    "Numerico",
+    "",
+    ""
+  ],
+  [
+    "Complemento C3",
+    "C3",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Complemento C4",
+    "C4",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Sodio serico",
+    "NA_S",
+    "Numerico",
+    "mmol/L",
+    ""
+  ],
+  [
+    "Potasio serico",
+    "K_S",
+    "Numerico",
+    "mmol/L",
+    ""
+  ],
+  [
+    "Cloro serico",
+    "CL_S",
+    "Numerico",
+    "mmol/L",
+    ""
+  ],
+  [
+    "Fosforo",
+    "P",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Magnesio",
+    "MG",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Calcio",
+    "CA",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Cistatina C",
+    "CISTC",
+    "Numerico",
+    "mg/L",
+    ""
+  ],
+  [
+    "Densidad urinaria",
+    "GE",
+    "Numerico",
+    "",
+    ""
+  ],
+  [
+    "pH urinario",
+    "PH_U",
+    "Numerico",
+    "",
+    ""
+  ],
+  [
+    "Proteinas en tira",
+    "PROT_TIRA",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Glucosa urinaria",
+    "GLU_U",
+    "Binaria",
+    "",
+    "0=Negativo,1=Positivo"
+  ],
+  [
+    "Sangre urinaria",
+    "HEM_U",
+    "Binaria",
+    "",
+    "0=Negativo,1=Positivo"
+  ],
+  [
+    "Nitritos",
+    "NIT_U",
+    "Binaria",
+    "",
+    "0=Negativo,1=Positivo"
+  ],
+  [
+    "Esterasa leucocitaria",
+    "LEU_U",
+    "Binaria",
+    "",
+    "0=Negativo,1=Positivo"
+  ],
+  [
+    "Bacterias",
+    "BACT_U",
+    "Categorica",
+    "",
+    "0=No,1=Escasas,2=Moderadas,3=Abundantes"
+  ],
+  [
+    "Sodio urinario",
+    "NA_U",
+    "Numerico",
+    "mmol/L",
+    ""
+  ],
+  [
+    "Potasio urinario",
+    "K_U",
+    "Numerico",
+    "mmol/L",
+    ""
+  ],
+  [
+    "Cloro urinario",
+    "CL_U",
+    "Numerico",
+    "mmol/L",
+    ""
+  ],
+  [
+    "Creatinina urinaria",
+    "CRE_U",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Microalbumina",
+    "MALB",
+    "Numerico",
+    "mg/L",
+    ""
+  ],
+  [
+    "Albumina urinaria",
+    "ALB_U",
+    "Numerico",
+    "mg/dL",
+    ""
+  ],
+  [
+    "Relacion Albumina/Creatinina",
+    "ACR",
+    "Numerico",
+    "mg/g",
+    ""
+  ],
+  [
+    "Insulina basal",
+    "INS",
+    "Numerico",
+    "µIU/mL",
+    ""
+  ],
+  [
+    "Vitamina D 25-OH",
+    "VITD",
+    "Numerico",
+    "ng/mL",
+    ""
+  ]
+]

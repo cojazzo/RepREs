@@ -1,0 +1,454 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  INVESTIGATOR
+  DATA_ENTRY
+  MONITOR
+  PHARMACY
+  READ_ONLY
+}
+
+enum ParticipantStatus {
+  SCREENING
+  ACTIVE
+  WITHDRAWN
+  COMPLETED
+  LOST_TO_FOLLOWUP
+}
+
+enum VisitType {
+  BASELINE
+  MONTH_2
+  MONTH_4
+  MONTH_6
+}
+
+enum ArmLabel {
+  A
+  B
+}
+
+enum Treatment {
+  DAPAGLIFLOZIN_10MG
+  PLACEBO
+}
+
+enum AESeverity {
+  MILD
+  MODERATE
+  SEVERE
+}
+
+enum AERelation {
+  UNRELATED
+  UNLIKELY
+  POSSIBLE
+  PROBABLE
+  DEFINITE
+}
+
+enum AEOutcome {
+  RECOVERED
+  RECOVERING
+  NOT_RECOVERED
+  FATAL
+  UNKNOWN
+}
+
+enum QueryStatus {
+  OPEN
+  RESPONDED
+  RESOLVED
+}
+
+enum VisitStatus {
+  DRAFT
+  SUBMITTED
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  role          Role      @default(READ_ONLY)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  auditLogs     AuditLog[]
+  dataQueries   DataQuery[]  @relation("QueryCreator")
+  queryResponses DataQuery[] @relation("QueryResponder")
+  unblindingLogs UnblindingLog[]
+}
+
+model Participant {
+  id              String             @id @default(uuid())
+  studyId         String             @unique
+  firstName       String
+  lastName        String
+  sex             String
+  birthDate       DateTime
+  curp            String?
+  chmhId          String?
+  phone           String?
+  status          ParticipantStatus  @default(SCREENING)
+  consentDate     DateTime?
+  enrolledAt      DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  screening       ScreeningChecklist?
+  randomization   Randomization?
+  visits          Visit[]
+  adverseEvents   AdverseEvent[]
+  dispensations   Dispensation[]
+
+  @@index([status])
+}
+
+model ScreeningChecklist {
+  id                    String      @id @default(uuid())
+  participantId         String      @unique
+  participant           Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  // Inclusion Criteria
+  acrOver30             Boolean     @default(false)
+  acrValue1             Float?
+  acrValue2             Float?
+  informedConsent       Boolean     @default(false)
+  willingToComply       Boolean     @default(false)
+
+  // Exclusion Criteria (true = excluded)
+  renalImpairment       Boolean     @default(false)
+  pregnancy             Boolean     @default(false)
+  knownAllergy          Boolean     @default(false)
+  activeInfection       Boolean     @default(false)
+  diabetesMellitus      Boolean     @default(false)
+  knownGlomerulopathy   Boolean     @default(false)
+  highRiskCondition     Boolean     @default(false)
+
+  eligible              Boolean     @default(false)
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+model Randomization {
+  id              String      @id @default(uuid())
+  participantId   String      @unique
+  participant     Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  armLabel        ArmLabel
+  treatment       Treatment
+  stratum         String      @default("UNKNOWN")
+  blockId         Int
+  blockSize       Int
+  sequenceInBlock Int
+  randomizedAt    DateTime    @default(now())
+
+  @@index([armLabel])
+}
+
+model Visit {
+  id              String      @id @default(uuid())
+  participantId   String
+  participant     Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  visitType       VisitType
+  visitDate       DateTime?
+  completed       Boolean     @default(false)
+  status          VisitStatus @default(DRAFT)
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  vitals              Vitals?
+  clinicalAssessment  ClinicalAssessment?
+  adherence           Adherence?
+  labResults          LabResult[]
+  concomitantMeds     ConcomitantMed[]
+  visitClinical       VisitClinical?
+  crfLabResults       CrfLabResult[]
+  visitAdherence      VisitAdherence?
+  visitAe             VisitAe?
+
+  @@unique([participantId, visitType])
+  @@index([visitType])
+}
+
+model Vitals {
+  id          String  @id @default(uuid())
+  visitId     String  @unique
+  visit       Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  weightKg    Float?
+  heightCm    Float?
+  bmi         Float?
+  systolicBp  Int?
+  diastolicBp Int?
+  heartRate   Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ClinicalAssessment {
+  id                  String  @id @default(uuid())
+  visitId             String  @unique
+  visit               Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  symptoms            String?   // JSON array of symptom strings
+  physicalExamNotes   String?
+  continuationCriteria Boolean  @default(true)
+  continuationNotes   String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Adherence {
+  id                  String  @id @default(uuid())
+  visitId             String  @unique
+  visit               Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  adherencePercent    Float?
+  missedDoses         Int?
+  reasonForNonAdherence String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model AdverseEvent {
+  id              String      @id @default(uuid())
+  participantId   String
+  participant     Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  visitType       VisitType?
+  description     String
+  startDate       DateTime
+  endDate         DateTime?
+  severity        AESeverity
+  relation        AERelation
+  outcome         AEOutcome
+  isSAE           Boolean     @default(false)
+  saeDetails      String?
+  actionTaken     String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([severity])
+  @@index([isSAE])
+}
+
+model LabResult {
+  id              String  @id @default(uuid())
+  visitId         String
+  visit           Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  analyteId       String
+  analyte         AnalyteCatalog @relation(fields: [analyteId], references: [id])
+
+  value           Float?
+  unit            String?
+  referenceMin    Float?
+  referenceMax    Float?
+  isAbnormal      Boolean @default(false)
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([visitId, analyteId])
+}
+
+model AnalyteCatalog {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  code        String      @unique
+  unit        String
+  refMin      Float?
+  refMax      Float?
+  category    String?
+  isActive    Boolean     @default(true)
+  isComputed  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  labResults  LabResult[]
+}
+
+model ConcomitantMed {
+  id          String  @id @default(uuid())
+  visitId     String
+  visit       Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  name        String
+  dose        String?
+  frequency   String?
+  indication  String?
+  startDate   DateTime?
+  endDate     DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Dispensation {
+  id              String      @id @default(uuid())
+  participantId   String
+  participant     Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  visitType       VisitType
+  dispensedDate   DateTime    @default(now())
+  lotNumber       String
+  tabletsDispensed Int
+  tabletsReturned  Int?
+  adherenceByPillCount Float?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([participantId])
+}
+
+model UnblindingLog {
+  id              String    @id @default(uuid())
+  participantId   String
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  reason          String
+  authorizedBy    String?
+  unblindedAt     DateTime  @default(now())
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  action      String
+  entity      String
+  entityId    String
+  field       String?
+  oldValue    String?
+  newValue    String?
+  ipAddress   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model DataQuery {
+  id              String      @id @default(uuid())
+  creatorId       String
+  creator         User        @relation("QueryCreator", fields: [creatorId], references: [id])
+  responderId     String?
+  responder       User?       @relation("QueryResponder", fields: [responderId], references: [id])
+  entity          String
+  entityId        String
+  field           String
+  queryText       String
+  responseText    String?
+  status          QueryStatus @default(OPEN)
+  priority        String      @default("NORMAL")
+  createdAt       DateTime    @default(now())
+  resolvedAt      DateTime?
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+}
+
+model StudyConfig {
+  id              String  @id @default(uuid())
+  key             String  @unique
+  value           String
+  description     String?
+  updatedAt       DateTime @updatedAt
+}
+
+model VisitClinical {
+  id        String  @id @default(uuid())
+  visitId   String  @unique
+  visit     Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  bpSys     Int?
+  bpDia     Int?
+  weightKg  Float?
+  heightCm  Float?
+  bmi       Float?
+  waistCm   Float?
+  hrBpm     Int?
+  godet     Int?    @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CrfLabAnalyte {
+  id         String  @id @default(uuid())
+  code       String  @unique
+  name       String
+  type       String
+  unit       String?
+  coding     String?
+  category   String?
+  sortOrder  Int     @default(0)
+  createdAt  DateTime @default(now())
+  crfLabResults CrfLabResult[]
+}
+
+model CrfLabResult {
+  id          String        @id @default(uuid())
+  visitId     String
+  visit       Visit         @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  analyteCode String
+  analyte     CrfLabAnalyte @relation(fields: [analyteCode], references: [code])
+  value       String?
+  unit        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([visitId, analyteCode])
+}
+
+model VisitAdherence {
+  id               String  @id @default(uuid())
+  visitId          String  @unique
+  visit            Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  apegoGlobal      Int?
+  dosisOlvidadas7d Int?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model VisitAe {
+  id             String  @id @default(uuid())
+  visitId        String  @unique
+  visit          Visit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  eaNuevo        Int?
+  eaAtencion     Int?
+  eaSuspension   Int?
+  eaMareo        Int?
+  eaGi           Int?
+  eaDolorAbd     Int?
+  eaApetito      Int?
+  eaFatiga       Int?
+  eaDolorRenal   Int?
+  eaEdema        Int?
+  eaOliguria     Int?
+  eaEspuma       Int?
+  eaIvu          Int?
+  eaAmputacion   Int?
+  eaMicosis      Int?
+  eaSeveridad    Int?
+  eaRelacion     Int?
+  eaHosp         Int?
+  eaDesc         String?
+  observaciones  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
