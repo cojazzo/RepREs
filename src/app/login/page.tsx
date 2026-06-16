@@ -34,11 +34,7 @@ export default function LoginPage() {
         }
     };
 
-    const demoUsers = [
-        { email: 'admin@demo.com', role: 'Admin', color: 'from-purple-500 to-indigo-500' },
-        { email: 'pharmacy@demo.com', role: 'Pharmacy', color: 'from-emerald-500 to-teal-500' },
-        { email: 'data@demo.com', role: 'Data Entry', color: 'from-amber-500 to-orange-500' },
-    ];
+
 
     return (
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -111,30 +107,7 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Demo Users */}
-                    <div className="mt-6 pt-6 border-t border-surface-700/50">
-                        <p className="text-xs text-surface-500 mb-3 text-center uppercase tracking-wider">Quick Access — Demo Users</p>
-                        <div className="space-y-2">
-                            {demoUsers.map((user) => (
-                                <button
-                                    key={user.email}
-                                    onClick={() => {
-                                        setEmail(user.email);
-                                        setPassword('Admin123!');
-                                    }}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-surface-700/60 transition-all duration-200 group"
-                                >
-                                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${user.color} flex items-center justify-center`}>
-                                        <span className="text-white text-xs font-bold">{user.role[0]}</span>
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="text-sm text-surface-300 group-hover:text-white transition-colors">{user.email}</p>
-                                        <p className="text-xs text-surface-500">{user.role}</p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>

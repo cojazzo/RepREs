@@ -19,7 +19,10 @@ export async function GET(
             select: { id: true, studyId: true, firstName: true, lastName: true, sex: true, birthDate: true },
         }),
         prisma.visit.findMany({
-            where: { participantId, status: 'SUBMITTED' },
+            where: { 
+                participantId, 
+                status: { in: ['DRAFT', 'SUBMITTED'] } 
+            },
             select: { id: true, visitType: true, visitDate: true },
             orderBy: { visitDate: 'asc' },
         }),

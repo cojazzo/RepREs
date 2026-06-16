@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { const c = await prisma.crfLabAnalyte.findUnique({where:{code:'EGFR_CALC'}}); console.log('EGFR_CALC exists:', !!c); } main().finally(() => process.exit(0));

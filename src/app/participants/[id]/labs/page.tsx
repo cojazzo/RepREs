@@ -150,7 +150,7 @@ export default function ParticipantLabsSummary() {
         });
 
         // Add computed rows
-        const eGFRRow = ['eGFR (CKD-EPI)', 'EGFR_CALC', 'Computed', 'mL/min/1.73m²'];
+        const eGFRRow = ['eGFR (CKD-EPI)', 'EGFR', 'Computed', 'mL/min/1.73m²'];
         data.visits.forEach(v => {
             const pt = data.computed.eGFR.find(e => e.visitId === v.visitId);
             eGFRRow.push(pt ? String(pt.value) : '');

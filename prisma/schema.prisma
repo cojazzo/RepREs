@@ -124,6 +124,7 @@ model ScreeningChecklist {
   acrOver30             Boolean     @default(false)
   acrValue1             Float?
   acrValue2             Float?
+  acrValue3             Float?
   informedConsent       Boolean     @default(false)
   willingToComply       Boolean     @default(false)
 

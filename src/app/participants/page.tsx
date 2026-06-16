@@ -27,18 +27,34 @@ const STATUS_BADGES: Record<string, string> = {
 export default function ParticipantsPage() {
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
 
     useEffect(() => {
+        setLoading(true);
+        setError(null);
         const params = new URLSearchParams();
         if (search) params.set('search', search);
         if (statusFilter) params.set('status', statusFilter);
 
         fetch(`/api/participants?${params}`)
             .then(r => r.json())
-            .then(d => { setParticipants(d); setLoading(false); })
-            .catch(() => setLoading(false));
+            .then(d => {
+                if (Array.isArray(d)) {
+                    setParticipants(d);
+                } else {
+                    // API returned an error object
+                    setParticipants([]);
+                    setError(d?.error || 'Failed to load participants.');
+                }
+                setLoading(false);
+            })
+            .catch((err) => {
+                setParticipants([]);
+                setError('Could not connect to server. Make sure the database is running.');
+                setLoading(false);
+            });
     }, [search, statusFilter]);
 
     const age = (dob: string) => {
@@ -81,11 +97,30 @@ export default function ParticipantsPage() {
                 </select>
             </div>
 
+            {/* Error banner */}
+            {error && (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                    ⚠️ {error}
+                </div>
+            )}
+
             {/* Table */}
             <div className="card p-0 overflow-hidden">
                 {loading ? (
                     <div className="flex items-center justify-center h-32">
                         <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full" />
+                    </div>
+                ) : participants.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-center gap-3">
+                        <div className="text-4xl">👥</div>
+                        <p className="text-surface-300 font-medium">
+                            {search || statusFilter ? 'No participants match your filters.' : 'No participants enrolled yet.'}
+                        </p>
+                        {!search && !statusFilter && (
+                            <Link href="/participants/new" className="btn-primary text-sm">
+                                Enroll First Participant
+                            </Link>
+                        )}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -115,7 +150,11 @@ export default function ParticipantsPage() {
                                         <td className="px-6 py-4 text-sm text-surface-300">{age(p.birthDate)}</td>
                                         <td className="px-6 py-4">
                                             {p.randomization ? (
-                                                <span className="badge-info">Group {p.randomization.armLabel}</span>
+                                                <span className="badge-info">
+                                                    {p.randomization.treatment === 'DAPAGLIFLOZIN_10MG' ? 'Dapagliflozin' :
+                                                     p.randomization.treatment === 'PLACEBO' ? 'Placebo' :
+                                                     `Group ${p.randomization.armLabel}`}
+                                                </span>
                                             ) : <span className="text-surface-500">—</span>}
                                         </td>
                                         <td className="px-6 py-4">

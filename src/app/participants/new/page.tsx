@@ -11,7 +11,7 @@ export default function EnrollParticipantPage() {
         firstName: '', lastName: '', sex: 'Male', birthDate: '', curp: '', chmhId: '', phone: '',
     });
     const [screening, setScreening] = useState({
-        acrOver30: false, acrValue1: '', acrValue2: '', informedConsent: false, willingToComply: false,
+        acrOver30: false, acrValue1: '', acrValue2: '', acrValue3: '', informedConsent: false, willingToComply: false,
         renalImpairment: false, pregnancy: false, knownAllergy: false, activeInfection: false,
         diabetesMellitus: false, knownGlomerulopathy: false, highRiskCondition: false,
     });
@@ -36,12 +36,16 @@ export default function EnrollParticipantPage() {
                         ...screening,
                         acrValue1: screening.acrValue1 ? Number(screening.acrValue1) : null,
                         acrValue2: screening.acrValue2 ? Number(screening.acrValue2) : null,
+                        acrValue3: screening.acrValue3 ? Number(screening.acrValue3) : null,
                     },
                     enroll
                 }),
             });
 
-            if (!res.ok) throw new Error('Failed to save');
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || 'Failed to save');
+            }
             const data = await res.json();
             router.push(`/participants/${data.id}`);
         } catch (e: any) {
@@ -105,7 +109,7 @@ export default function EnrollParticipantPage() {
                     <h3 className="text-sm font-medium text-surface-300 mb-3 uppercase tracking-wider">Inclusion Criteria (all must be checked)</h3>
                     <div className="space-y-3">
                         {[
-                            { key: 'acrOver30', label: 'ACR > 30 mg/g confirmed on 2 separate occasions' },
+                            { key: 'acrOver30', label: 'ACR > 30 mg/g confirmed on 3 separate occasions' },
                             { key: 'informedConsent', label: 'Informed consent obtained and documented' },
                             { key: 'willingToComply', label: 'Willing and able to comply with study procedures' },
                         ].map(({ key, label }) => (
@@ -121,7 +125,7 @@ export default function EnrollParticipantPage() {
                                     {(screening as any)[key] && <span className="ml-auto text-emerald-400 text-xs">✓ Met</span>}
                                 </label>
                                 {key === 'acrOver30' && (screening as any)[key] && (
-                                    <div className="ml-8 grid grid-cols-2 gap-4 mt-2 mb-2">
+                                    <div className="ml-8 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2 mb-2">
                                         <input
                                             type="number"
                                             className="input text-sm"
@@ -135,6 +139,13 @@ export default function EnrollParticipantPage() {
                                             placeholder="ACR test 2 (mg/g)"
                                             value={screening.acrValue2}
                                             onChange={e => setScreening(s => ({ ...s, acrValue2: e.target.value }))}
+                                        />
+                                        <input
+                                            type="number"
+                                            className="input text-sm"
+                                            placeholder="ACR test 3 (mg/g)"
+                                            value={screening.acrValue3}
+                                            onChange={e => setScreening(s => ({ ...s, acrValue3: e.target.value }))}
                                         />
                                     </div>
                                 )}

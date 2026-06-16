@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { console.log('CrfLabResult:', await prisma.crfLabResult.count()); console.log('LabResult:', await prisma.labResult.count()); } main().finally(() => prisma.$disconnect());

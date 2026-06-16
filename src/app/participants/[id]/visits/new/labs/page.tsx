@@ -86,7 +86,7 @@ export default function LabsPage() {
                 const alpha = sex === 'Female' ? -0.241 : -0.302;
                 let eGFR = 142 * Math.pow(Math.min(creS / kappa, 1), alpha) * Math.pow(Math.max(creS / kappa, 1), -1.200) * Math.pow(0.9938, age);
                 if (sex === 'Female') eGFR *= 1.012;
-                newValues['EGFR_CALC'] = eGFR.toFixed(1);
+                newValues['EGFR'] = eGFR.toFixed(1);
                 changed = true;
             }
         }
@@ -210,7 +210,7 @@ export default function LabsPage() {
                 </div>
 
                 {/* Auto-calculated values */}
-                {(values['ACR'] || values['EGFR_CALC']) && (
+                {(values['ACR'] || values['EGFR']) && (
                     <div className="mt-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
                         <p className="text-xs font-semibold text-primary-400 mb-2 uppercase tracking-wider">Auto-Calculated</p>
                         <div className="flex gap-6">
@@ -220,10 +220,10 @@ export default function LabsPage() {
                                     <span className="ml-2 text-sm text-white font-medium">{values['ACR']} mg/g</span>
                                 </div>
                             )}
-                            {values['EGFR_CALC'] && (
+                            {values['EGFR'] && (
                                 <div>
                                     <span className="text-xs text-surface-400">eGFR (CKD-EPI):</span>
-                                    <span className="ml-2 text-sm text-white font-medium">{values['EGFR_CALC']} mL/min/1.73m²</span>
+                                    <span className="ml-2 text-sm text-white font-medium">{values['EGFR']} mL/min/1.73m²</span>
                                 </div>
                             )}
                         </div>

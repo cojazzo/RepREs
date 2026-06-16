@@ -49,9 +49,45 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { firstName, lastName, sex, birthDate, curp, chmhId, phone, screening, enroll } = body;
 
-    // Generate study ID
-    const count = await prisma.participant.count();
-    const studyId = `REP-${String(count + 1).padStart(4, '0')}`;
+    // Check for duplicates
+    const orConditions: any[] = [
+        {
+            AND: [
+                { firstName: { equals: firstName, mode: 'insensitive' } },
+                { lastName: { equals: lastName, mode: 'insensitive' } },
+                { birthDate: new Date(birthDate) }
+            ]
+        }
+    ];
+    if (curp) orConditions.push({ curp: { equals: curp, mode: 'insensitive' } });
+    if (chmhId) orConditions.push({ chmhId: { equals: chmhId, mode: 'insensitive' } });
+
+    const existing = await prisma.participant.findFirst({
+        where: { OR: orConditions }
+    });
+
+    if (existing) {
+        let duplicateField = 'Name and Date of Birth';
+        if (curp && existing.curp?.toUpperCase() === curp.toUpperCase()) duplicateField = 'CURP';
+        else if (chmhId && existing.chmhId?.toUpperCase() === chmhId.toUpperCase()) duplicateField = 'CHMH ID';
+
+        return NextResponse.json({ error: `A participant with this ${duplicateField} already exists (${existing.studyId}).` }, { status: 409 });
+    }
+
+    // Generate study ID safely based on the highest existing ID, not count
+    const lastParticipant = await prisma.participant.findFirst({
+        orderBy: { studyId: 'desc' },
+        select: { studyId: true }
+    });
+    
+    let nextNum = 1;
+    if (lastParticipant && lastParticipant.studyId.startsWith('REP-')) {
+        const lastNum = parseInt(lastParticipant.studyId.replace('REP-', ''), 10);
+        if (!isNaN(lastNum)) {
+            nextNum = lastNum + 1;
+        }
+    }
+    const studyId = `REP-${String(nextNum).padStart(4, '0')}`;
 
     const participant = await prisma.participant.create({
         data: {
@@ -71,6 +107,7 @@ export async function POST(req: NextRequest) {
                     acrOver30: screening.acrOver30 ?? false,
                     acrValue1: screening.acrValue1 ?? null,
                     acrValue2: screening.acrValue2 ?? null,
+                    acrValue3: screening.acrValue3 ?? null,
                     informedConsent: screening.informedConsent ?? false,
                     willingToComply: screening.willingToComply ?? false,
                     renalImpairment: screening.renalImpairment ?? false,

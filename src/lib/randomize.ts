@@ -28,8 +28,8 @@ export async function assignRandomization(participantId: string): Promise<{
     });
 
     let stratum = 'UNKNOWN';
-    if (screening && screening.acrValue1 !== null && screening.acrValue2 !== null) {
-        const averageAcr = (screening.acrValue1 + screening.acrValue2) / 2;
+    if (screening && screening.acrValue1 !== null && screening.acrValue2 !== null && screening.acrValue3 !== null) {
+        const averageAcr = (screening.acrValue1 + screening.acrValue2 + screening.acrValue3) / 3;
         stratum = averageAcr <= 300 ? 'ACR_LE_300' : 'ACR_GT_300';
     }
 

@@ -11,6 +11,17 @@ interface ResultEntry { visitId: string; value: string | null; unit: string | nu
 interface ComputedPoint { visitId: string; value: number }
 interface Participant { id: string; studyId: string; firstName: string; lastName: string; status: string }
 
+interface QueueItem {
+    id: string;
+    file: File;
+    status: 'PENDING' | 'EXTRACTING' | 'AWAITING_REVIEW' | 'SAVING' | 'SAVED' | 'ERROR';
+    error?: string;
+    extractedData?: any;
+    suggestedParticipant?: any;
+    selectedParticipantId?: string;
+    visitType: string;
+}
+
 interface LabsSummary {
     participant: { id: string; studyId: string; firstName: string; lastName: string; sex: string; birthDate: string };
     visits: Visit[];
@@ -45,6 +56,30 @@ export default function LabsPage() {
     const [selectedAnalyte, setSelectedAnalyte] = useState('');
     const [activeTab, setActiveTab] = useState<'kidney' | 'other' | 'table'>('kidney');
 
+    // ─── AI PDF Extractor state ───
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
+    const [extracting, setExtracting] = useState(false);
+    const [extractedData, setExtractedData] = useState<any>(null);
+    const [extractError, setExtractError] = useState<string | null>(null);
+    const [pdfVisitType, setPdfVisitType] = useState('BASELINE');
+    const [savingLabs, setSavingLabs] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+    const [suggestedParticipant, setSuggestedParticipant] = useState<any>(null);
+
+    // ─── Bulk Extractor state ───
+    const [extractorMode, setExtractorMode] = useState<'single' | 'bulk'>('single');
+    const [bulkQueue, setBulkQueue] = useState<QueueItem[]>([]);
+    const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+
+    // Initialize PDF.js worker
+    useEffect(() => {
+        const initPdfWorker = async () => {
+            const pdfjsLib = await import('pdfjs-dist');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+        };
+        initPdfWorker();
+    }, []);
+
     // ─── Load participants ───
     useEffect(() => {
         fetch('/api/participants')
@@ -62,6 +97,88 @@ export default function LabsPage() {
             .then(d => { setData(d); setLoadingSummary(false); })
             .catch(() => setLoadingSummary(false));
     }, [selectedId]);
+
+    // ─── Bulk Queue Processor ───
+    useEffect(() => {
+        if (!isProcessingQueue) return;
+        const processNext = async () => {
+            const nextIndex = bulkQueue.findIndex(q => q.status === 'PENDING');
+            if (nextIndex === -1) {
+                setIsProcessingQueue(false);
+                return;
+            }
+            
+            // Mark as extracting
+            setBulkQueue(prev => {
+                const newQ = [...prev];
+                newQ[nextIndex] = { ...newQ[nextIndex], status: 'EXTRACTING' };
+                return newQ;
+            });
+
+            const item = bulkQueue[nextIndex];
+            
+            try {
+                const pdfjsLib = await import('pdfjs-dist');
+                const arrayBuffer = await item.file.arrayBuffer();
+                const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                let fullText = '';
+                for (let i = 1; i <= pdfDoc.numPages; i++) {
+                    const page = await pdfDoc.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map((it: any) => it.str).join(' ');
+                    fullText += pageText + '\\n';
+                }
+
+                const res = await fetch('/api/extract-labs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: fullText })
+                });
+
+                const apiData = await res.json();
+                if (!res.ok) throw new Error(apiData.error || 'Failed to extract data');
+                
+                let match = null;
+                const chmhIdObj = apiData.extractedData["No. de expediente"] || apiData.extractedData["No. de Expediente"];
+                if (chmhIdObj && chmhIdObj.value) {
+                   const rawId = String(chmhIdObj.value).replace(/\\s+/g, '');
+                   const chmhId = rawId.replace(/^(\\d{4})(\\d{5})$/, '$1-$2');
+                   match = participants.find(p => p.chmhId === chmhId || p.studyId === chmhId || p.chmhId === rawId);
+                }
+                
+                if (!match) {
+                    const nameObj = apiData.extractedData["Paciente (Nombre completo)"];
+                    if (nameObj && nameObj.value) {
+                        const extractedName = String(nameObj.value).toLowerCase();
+                        match = participants.find(p => {
+                            const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+                            return extractedName.includes(p.lastName.toLowerCase()) || fullName.includes(extractedName);
+                        });
+                    }
+                }
+
+                setBulkQueue(prev => {
+                    const newQ = [...prev];
+                    newQ[nextIndex] = {
+                        ...newQ[nextIndex],
+                        status: 'AWAITING_REVIEW',
+                        extractedData: apiData.extractedData,
+                        suggestedParticipant: match,
+                        selectedParticipantId: match ? match.id : undefined
+                    };
+                    return newQ;
+                });
+            } catch (err: any) {
+                setBulkQueue(prev => {
+                    const newQ = [...prev];
+                    newQ[nextIndex] = { ...newQ[nextIndex], status: 'ERROR', error: err.message };
+                    return newQ;
+                });
+            }
+        };
+        processNext();
+    }, [isProcessingQueue, bulkQueue, participants]);
 
     // ─── Filtered participants ───
     const filteredParticipants = useMemo(() => {
@@ -166,7 +283,7 @@ export default function LabsPage() {
             return row;
         });
         // Computed rows at top
-        const eGFRRow = ['eGFR (CKD-EPI)', 'EGFR_CALC', 'Computed', 'mL/min/1.73m²'];
+        const eGFRRow = ['eGFR (CKD-EPI)', 'EGFR', 'Computed', 'mL/min/1.73m²'];
         data.visits.forEach(v => { const pt = data.computed.eGFR.find(e => e.visitId === v.visitId); eGFRRow.push(pt ? String(pt.value) : ''); });
         rows.unshift(eGFRRow);
         const acrRow = ['ACR (Computed)', 'ACR_CALC', 'Computed', 'mg/g'];
@@ -186,6 +303,157 @@ export default function LabsPage() {
             XLSX.writeFile(wb, `labs_${data.participant.studyId}.xlsx`);
         }
     }, [data, getCellValue]);
+
+    // ─── AI Extractor Handlers ───
+    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        setPdfFile(file);
+        setExtracting(true);
+        setExtractError(null);
+        setExtractedData(null);
+        setSaveSuccess(null);
+        setSuggestedParticipant(null);
+
+        try {
+            const pdfjsLib = await import('pdfjs-dist');
+            const arrayBuffer = await file.arrayBuffer();
+            const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            let fullText = '';
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                fullText += pageText + '\\n';
+            }
+
+            const res = await fetch('/api/extract-labs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: fullText })
+            });
+
+            const apiData = await res.json();
+            if (!res.ok) throw new Error(apiData.error || 'Failed to extract data');
+            
+            setExtractedData(apiData.extractedData);
+
+            // Suggest participant based on CHMH ID
+            const chmhIdObj = apiData.extractedData["No. de expediente"] || apiData.extractedData["No. de Expediente"];
+            let match = null;
+            if (chmhIdObj && chmhIdObj.value) {
+               // Strip all internal spaces to handle formatting quirks like "2026- 07955"
+               const rawId = String(chmhIdObj.value).replace(/\s+/g, '');
+               const chmhId = rawId.replace(/^(\d{4})(\d{5})$/, '$1-$2');
+               match = participants.find(p => p.chmhId === chmhId || p.studyId === chmhId || p.chmhId === rawId);
+            }
+            
+            // If no ID match, try fuzzy name match
+            if (!match) {
+                const nameObj = apiData.extractedData["Paciente (Nombre completo)"];
+                if (nameObj && nameObj.value) {
+                    const extractedName = String(nameObj.value).toLowerCase();
+                    match = participants.find(p => {
+                        const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+                        return extractedName.includes(p.lastName.toLowerCase()) || fullName.includes(extractedName);
+                    });
+                }
+            }
+
+            if (match) {
+                setSuggestedParticipant(match);
+            }
+        } catch (err: any) {
+            setExtractError(err.message);
+        } finally {
+            setExtracting(false);
+        }
+    };
+
+    const handleBulkUploadDrop = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const newItems: QueueItem[] = Array.from(e.target.files).map(f => ({
+            id: Math.random().toString(36).substring(7),
+            file: f,
+            status: 'PENDING',
+            visitType: 'BASELINE'
+        }));
+        setBulkQueue(prev => [...prev, ...newItems]);
+        setIsProcessingQueue(true);
+    };
+
+    const handleSaveBulkItem = async (index: number) => {
+        const item = bulkQueue[index];
+        if (!item.extractedData || !item.selectedParticipantId) return;
+        
+        setBulkQueue(prev => {
+            const newQ = [...prev];
+            newQ[index] = { ...newQ[index], status: 'SAVING' };
+            return newQ;
+        });
+
+        try {
+            const res = await fetch('/api/save-extracted-labs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    extractedData: item.extractedData,
+                    visitType: item.visitType,
+                    participantId: item.selectedParticipantId
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed');
+            
+            setBulkQueue(prev => {
+                const newQ = [...prev];
+                newQ[index] = { ...newQ[index], status: 'SAVED' };
+                return newQ;
+            });
+            
+            if (selectedId === item.selectedParticipantId) {
+                setSelectedId(''); setTimeout(() => setSelectedId(item.selectedParticipantId!), 100);
+            }
+        } catch (err: any) {
+             setBulkQueue(prev => {
+                const newQ = [...prev];
+                newQ[index] = { ...newQ[index], status: 'ERROR', error: err.message };
+                return newQ;
+            });
+        }
+    };
+
+    const handleSaveToProfile = async () => {
+        if (!extractedData) return;
+        setSavingLabs(true);
+        setExtractError(null);
+        try {
+            const res = await fetch('/api/save-extracted-labs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    extractedData,
+                    visitType: pdfVisitType,
+                    participantId: selectedId
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to save to database');
+            
+            setSaveSuccess(data.message);
+            
+            // Reload participant labs to update charts!
+            if (data.participantId) {
+                setSelectedId(''); // reset and force reload
+                setTimeout(() => setSelectedId(data.participantId), 100);
+            }
+        } catch (err: any) {
+            setExtractError(err.message);
+        } finally {
+            setSavingLabs(false);
+        }
+    };
 
     const selectedAnalyteObj = data?.analytes.find(a => a.code === selectedAnalyte);
 
@@ -260,6 +528,215 @@ export default function LabsPage() {
                         </select>
                     </div>
                 </div>
+            </div>
+
+            {/* ═══════ AI PDF EXTRACTOR ═══════ */}
+            <div className="card relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                    <span className="text-8xl">🤖</span>
+                </div>
+                
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 border-b border-surface-700/50 pb-4 relative z-10">
+                    <div>
+                        <h2 className="section-title flex items-center gap-2 mb-1">
+                            <span className="text-xl">📄</span> AI Lab Extractor
+                        </h2>
+                        <p className="text-sm text-surface-400">Extract labs automatically using Llama 3.</p>
+                    </div>
+                    
+                    <div className="flex bg-surface-800/80 p-1 rounded-xl border border-surface-600/30 mt-4 md:mt-0">
+                        <button 
+                            onClick={() => setExtractorMode('single')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${extractorMode === 'single' ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20' : 'text-surface-400 hover:text-white hover:bg-surface-700'}`}
+                        >
+                            Single Upload
+                        </button>
+                        <button 
+                            onClick={() => setExtractorMode('bulk')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${extractorMode === 'bulk' ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20' : 'text-surface-400 hover:text-white hover:bg-surface-700'}`}
+                        >
+                            Bulk Queue
+                        </button>
+                    </div>
+                </div>
+                
+                {extractorMode === 'single' ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+                    <div className="col-span-1 space-y-4">
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-primary-500/30 border-dashed rounded-xl cursor-pointer bg-primary-500/5 hover:bg-primary-500/10 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <p className="mb-2 text-sm text-primary-400 font-semibold">{extracting ? 'Extracting with Llama 3...' : 'Click to upload PDF'}</p>
+                            </div>
+                            <input type="file" className="hidden" accept=".pdf" onChange={handlePdfUpload} disabled={extracting} />
+                        </label>
+                        
+                        {extractError && <div className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg">{extractError}</div>}
+                        {saveSuccess && <div className="text-emerald-400 text-sm bg-emerald-400/10 p-3 rounded-lg">{saveSuccess}</div>}
+                        
+                        {suggestedParticipant && suggestedParticipant.id !== selectedId && (
+                            <div className="bg-primary-500/10 border border-primary-500/30 p-3 rounded-xl mb-4 flex flex-col gap-2 text-sm animate-fade-in">
+                                <p className="text-primary-400">
+                                    <strong>💡 AI Match:</strong> Found <em>{suggestedParticipant.lastName}, {suggestedParticipant.firstName}</em> ({suggestedParticipant.chmhId})
+                                </p>
+                                <button 
+                                    className="btn-outline-primary py-1.5 px-3 text-xs w-full font-semibold"
+                                    onClick={() => {
+                                        setSelectedId(suggestedParticipant.id);
+                                        setParticipantSearch(`${suggestedParticipant.studyId} — ${suggestedParticipant.lastName}, ${suggestedParticipant.firstName}`);
+                                    }}
+                                >
+                                    Click to Select This Patient
+                                </button>
+                            </div>
+                        )}
+
+                        {extractedData && (
+                            <div className="bg-surface-800 p-4 rounded-xl border border-surface-600">
+                                <label className="label mb-1">Assign to Visit</label>
+                                <select className="select w-full mb-4" value={pdfVisitType} onChange={e => setPdfVisitType(e.target.value)}>
+                                    <option value="BASELINE">V0 · Baseline</option>
+                                    <option value="MONTH_2">V1 · Month 2</option>
+                                    <option value="MONTH_4">V2 · Month 4</option>
+                                    <option value="MONTH_6">V3 · Month 6</option>
+                                </select>
+                                <button 
+                                    onClick={handleSaveToProfile} 
+                                    disabled={savingLabs || !selectedId}
+                                    className={`w-full shadow-lg transition-all ${
+                                        !selectedId 
+                                        ? 'bg-surface-700 text-surface-400 cursor-not-allowed py-2 px-4 rounded-xl' 
+                                        : 'btn-primary shadow-primary-500/20'
+                                    }`}
+                                >
+                                    {savingLabs ? 'Saving...' : !selectedId ? '⚠️ Select a Patient First' : '💾 Save to Selected Patient'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="col-span-2">
+                        {extracting ? (
+                            <div className="h-full min-h-[200px] flex flex-col items-center justify-center bg-surface-800 rounded-xl border border-surface-700/50">
+                                <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mb-4" />
+                                <p className="text-surface-400 animate-pulse">Running exhaustive extraction...</p>
+                            </div>
+                        ) : extractedData ? (
+                            <div className="bg-surface-800 rounded-xl border border-surface-700/50 max-h-80 overflow-y-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-surface-800/90 sticky top-0 backdrop-blur-sm z-10 border-b border-surface-700">
+                                        <tr>
+                                            <th className="text-left px-4 py-3 font-medium text-surface-300">Target Field</th>
+                                            <th className="text-right px-4 py-3 font-medium text-surface-300">Extracted Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-surface-700/50">
+                                        {Object.entries(extractedData).map(([key, val]: any) => (
+                                            <tr key={key} className="hover:bg-surface-700/30">
+                                                <td className="px-4 py-2 text-surface-300">{key}</td>
+                                                <td className="px-4 py-2 text-right">
+                                                    <span className="text-white font-medium">{val?.value}</span>
+                                                    <span className="text-surface-500 ml-2 text-xs">{val?.unit || ''}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="h-full min-h-[200px] flex flex-col items-center justify-center bg-surface-800/50 rounded-xl border border-surface-700/30 text-surface-500 border-dashed">
+                                <span className="text-3xl mb-2 opacity-50">📋</span>
+                                <p>Extracted data will appear here</p>
+                            </div>
+                        )}
+                    </div>
+                    </div>
+                ) : (
+                    <div className="relative z-10">
+                        <div className="mb-6 flex gap-4 items-center">
+                            <label className="btn-primary py-2 px-6 shadow-lg shadow-primary-500/20 cursor-pointer flex-shrink-0">
+                                <span>➕ Select PDFs</span>
+                                <input type="file" className="hidden" multiple accept=".pdf" onChange={handleBulkUploadDrop} />
+                            </label>
+                            <p className="text-sm text-surface-400">Select multiple PDF files. They will be processed one by one automatically.</p>
+                        </div>
+                        
+                        {bulkQueue.length > 0 ? (
+                            <div className="bg-surface-800/50 border border-surface-700/50 rounded-xl overflow-hidden">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-surface-800 border-b border-surface-700/50 text-surface-300">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left font-medium">File Name</th>
+                                            <th className="px-4 py-3 text-left font-medium">Status</th>
+                                            <th className="px-4 py-3 text-left font-medium">Extracted Match</th>
+                                            <th className="px-4 py-3 text-left font-medium">Visit</th>
+                                            <th className="px-4 py-3 text-right font-medium">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-surface-700/30">
+                                        {bulkQueue.map((item, i) => (
+                                            <tr key={item.id} className="hover:bg-surface-700/20 transition-colors">
+                                                <td className="px-4 py-3 font-medium max-w-[200px] truncate" title={item.file.name}>
+                                                    {item.file.name}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {item.status === 'PENDING' && <span className="text-surface-400">⏳ Pending</span>}
+                                                    {item.status === 'EXTRACTING' && <span className="text-primary-400 flex items-center gap-2"><div className="animate-spin w-3 h-3 border-2 border-primary-500 border-t-transparent rounded-full" /> Extracting...</span>}
+                                                    {item.status === 'AWAITING_REVIEW' && <span className="text-amber-400">👀 Awaiting Review</span>}
+                                                    {item.status === 'SAVING' && <span className="text-emerald-400">💾 Saving...</span>}
+                                                    {item.status === 'SAVED' && <span className="text-emerald-500">✅ Saved</span>}
+                                                    {item.status === 'ERROR' && <span className="text-red-400" title={item.error}>❌ Error</span>}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {item.suggestedParticipant ? (
+                                                        <div>
+                                                            <div className="font-semibold">{item.suggestedParticipant.lastName}, {item.suggestedParticipant.firstName}</div>
+                                                            <div className="text-xs text-surface-400">{item.suggestedParticipant.chmhId}</div>
+                                                        </div>
+                                                    ) : item.status === 'AWAITING_REVIEW' ? (
+                                                        <span className="text-surface-500 italic">No match found</span>
+                                                    ) : <span className="text-surface-600">—</span>}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <select 
+                                                        className="select py-1 px-2 text-xs bg-surface-900 border-surface-600"
+                                                        value={item.visitType}
+                                                        onChange={(e) => {
+                                                            const newQ = [...bulkQueue];
+                                                            newQ[i].visitType = e.target.value;
+                                                            setBulkQueue(newQ);
+                                                        }}
+                                                        disabled={item.status === 'SAVED' || item.status === 'SAVING'}
+                                                    >
+                                                        <option value="BASELINE">V0 · Baseline</option>
+                                                        <option value="MONTH_2">V1 · Month 2</option>
+                                                        <option value="MONTH_4">V2 · Month 4</option>
+                                                        <option value="MONTH_6">V3 · Month 6</option>
+                                                    </select>
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    {item.status === 'AWAITING_REVIEW' && item.selectedParticipantId && (
+                                                        <button 
+                                                            onClick={() => handleSaveBulkItem(i)}
+                                                            className="btn-outline-emerald py-1 px-3 text-xs"
+                                                        >
+                                                            Approve & Save
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-surface-700/50 rounded-xl bg-surface-800/30">
+                                <span className="text-4xl mb-4">📂</span>
+                                <h3 className="text-lg font-medium text-surface-300 mb-1">Queue is empty</h3>
+                                <p className="text-surface-500 text-sm">Select multiple PDFs to begin sequential extraction.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* ═══════ NO SELECTION PLACEHOLDER ═══════ */}

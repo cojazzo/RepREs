@@ -86,8 +86,16 @@ export async function GET() {
 
     // --- Lab Trends (ACR and eGFR) ---
     const labResults = await prisma.crfLabResult.findMany({
-        where: { analyteCode: { in: ['ACR', 'EGFR', 'EGFR_CALC'] } },
-        include: { visit: { select: { visitType: true, participantId: true } } }
+        where: { analyteCode: { in: ['ACR', 'EGFR', 'EGFR_CALC', 'CRE_S', 'ALB_U', 'MALB', 'CRE_U'] } },
+        include: { 
+            visit: { 
+                select: { 
+                    visitType: true, 
+                    participantId: true,
+                    participant: { select: { birthDate: true, sex: true } }
+                } 
+            } 
+        }
     });
 
     const armAIdsSet = new Set(armAIds);
@@ -95,27 +103,109 @@ export async function GET() {
     const visitsOrder = ['BASELINE', 'MONTH_2', 'MONTH_4', 'MONTH_6'];
     const trends: Record<string, any> = { ACR: [], EGFR: [] };
 
+    const visitDataByArmAndType: Record<string, Record<string, { armA: number[], armB: number[] }>> = { ACR: {}, EGFR: {} };
+    visitsOrder.forEach(vt => {
+        visitDataByArmAndType['ACR'][vt] = { armA: [], armB: [] };
+        visitDataByArmAndType['EGFR'][vt] = { armA: [], armB: [] };
+    });
+
+    const resultsByVisit = new Map<string, any[]>();
+    labResults.forEach((r: any) => {
+        const key = `${r.visit.participantId}_${r.visit.visitType}`;
+        if (!resultsByVisit.has(key)) resultsByVisit.set(key, []);
+        resultsByVisit.get(key)!.push(r);
+    });
+
+    resultsByVisit.forEach((results, key) => {
+        const first = results[0];
+        const pId = first.visit.participantId;
+        const vt = first.visit.visitType;
+        const pAge = first.visit.participant.birthDate ? Math.floor((Date.now() - new Date(first.visit.participant.birthDate).getTime()) / 31557600000) : 50;
+        const pSex = first.visit.participant.sex;
+
+        const isArmA = armAIdsSet.has(pId);
+        const isArmB = armBIdsSet.has(pId);
+        if (!isArmA && !isArmB) return;
+
+        // eGFR
+        let egfr = results.find(r => r.analyteCode === 'EGFR' || r.analyteCode === 'EGFR_CALC')?.value;
+        if (!egfr) {
+            const creS = results.find(r => r.analyteCode === 'CRE_S');
+            if (creS?.value) {
+                const scr = parseFloat(creS.value);
+                if (!isNaN(scr) && scr > 0) {
+                    const kappa = pSex === 'Female' ? 0.7 : 0.9;
+                    const alpha = pSex === 'Female' ? -0.241 : -0.302;
+                    let val = 142 * Math.pow(Math.min(scr / kappa, 1), alpha) * Math.pow(Math.max(scr / kappa, 1), -1.200) * Math.pow(0.9938, pAge);
+                    if (pSex === 'Female') val *= 1.012;
+                    egfr = val;
+                }
+            }
+        } else { egfr = parseFloat(egfr); }
+
+        if (egfr && !isNaN(parseFloat(egfr as string))) {
+            const val = parseFloat(egfr as string);
+            if (visitDataByArmAndType['EGFR'][vt]) {
+                if (isArmA) visitDataByArmAndType['EGFR'][vt].armA.push(val);
+                if (isArmB) visitDataByArmAndType['EGFR'][vt].armB.push(val);
+            }
+        }
+
+        // ACR
+        let acr = results.find(r => r.analyteCode === 'ACR')?.value;
+        if (!acr) {
+            const albU = results.find(r => r.analyteCode === 'ALB_U');
+            const malb = results.find(r => r.analyteCode === 'MALB');
+            const creU = results.find(r => r.analyteCode === 'CRE_U');
+            if (creU?.value) {
+                const creUVal = parseFloat(creU.value);
+                const albVal = albU?.value ? parseFloat(albU.value) * 10 : (malb?.value ? parseFloat(malb.value) : NaN);
+                if (!isNaN(albVal) && creUVal > 0) {
+                    acr = (albVal / (creUVal * 10)) * 1000;
+                }
+            }
+        } else { acr = parseFloat(acr); }
+
+        if (acr && !isNaN(parseFloat(acr as string))) {
+            const val = parseFloat(acr as string);
+            if (visitDataByArmAndType['ACR'][vt]) {
+                if (isArmA) visitDataByArmAndType['ACR'][vt].armA.push(val);
+                if (isArmB) visitDataByArmAndType['ACR'][vt].armB.push(val);
+            }
+        }
+    });
+
     ['ACR', 'EGFR'].forEach(baseCode => {
-        const visitData = visitsOrder.map(vt => ({ name: vt, armA: [] as number[], armB: [] as number[] }));
-
-        labResults.filter((r: any) => (r.analyteCode === baseCode || (baseCode === 'EGFR' && r.analyteCode === 'EGFR_CALC')) && r.value != null).forEach((r: any) => {
-            const val = parseFloat(r.value!);
-            if (isNaN(val)) return;
-            const vt = r.visit.visitType;
-            const pId = r.visit.participantId;
-
-            const vData = visitData.find(v => v.name === vt);
-            if (!vData) return;
-
-            if (armAIdsSet.has(pId)) vData.armA.push(val);
-            else if (armBIdsSet.has(pId)) vData.armB.push(val);
+        trends[baseCode] = visitsOrder.map(vt => {
+            const vData = visitDataByArmAndType[baseCode][vt];
+            return {
+                name: vt.replace('_', ' '),
+                GroupA: vData.armA.length ? Math.round((vData.armA.reduce((a, b) => a + b, 0) / vData.armA.length) * 10) / 10 : null,
+                GroupB: vData.armB.length ? Math.round((vData.armB.reduce((a, b) => a + b, 0) / vData.armB.length) * 10) / 10 : null,
+            };
         });
+    });
 
-        trends[baseCode] = visitData.map(v => ({
-            name: v.name.replace('_', ' '),
-            GroupA: v.armA.length ? Math.round((v.armA.reduce((a, b) => a + b, 0) / v.armA.length) * 10) / 10 : null,
-            GroupB: v.armB.length ? Math.round((v.armB.reduce((a, b) => a + b, 0) / v.armB.length) * 10) / 10 : null,
-        }));
+    // Add Enrollment ACR from ScreeningChecklist
+    const screenings = await prisma.screeningChecklist.findMany({
+        where: { participantId: { in: [...armAIds, ...armBIds] } },
+        select: { participantId: true, acrValue1: true, acrValue2: true, acrValue3: true }
+    });
+
+    const screeningAcrByArm = { armA: [] as number[], armB: [] as number[] };
+    screenings.forEach(s => {
+        const vals = [s.acrValue1, s.acrValue2, s.acrValue3].filter(v => v !== null) as number[];
+        if (vals.length > 0) {
+            const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+            if (armAIdsSet.has(s.participantId)) screeningAcrByArm.armA.push(mean);
+            else if (armBIdsSet.has(s.participantId)) screeningAcrByArm.armB.push(mean);
+        }
+    });
+
+    trends['ACR'].unshift({
+        name: 'ENROLLMENT',
+        GroupA: screeningAcrByArm.armA.length ? Math.round((screeningAcrByArm.armA.reduce((a, b) => a + b, 0) / screeningAcrByArm.armA.length) * 10) / 10 : null,
+        GroupB: screeningAcrByArm.armB.length ? Math.round((screeningAcrByArm.armB.reduce((a, b) => a + b, 0) / screeningAcrByArm.armB.length) * 10) / 10 : null,
     });
 
     const targetPerArm = 100;

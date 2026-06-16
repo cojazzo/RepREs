@@ -16,7 +16,7 @@ export function canViewTreatment(role: Role): boolean {
 }
 
 export function canEdit(role: Role): boolean {
-    const allowed: readonly Role[] = [Role.ADMIN, Role.INVESTIGATOR, Role.DATA_ENTRY];
+    const allowed: readonly Role[] = [Role.ADMIN, Role.INVESTIGATOR, Role.DATA_ENTRY, Role.PHARMACY];
     return allowed.includes(role);
 }
 
