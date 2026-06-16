@@ -9,7 +9,7 @@ interface Visit { visitId: string; visitType: string; visitDate: string | null }
 interface Analyte { code: string; name: string; category: string | null; type: string; unit: string | null; coding: string | null }
 interface ResultEntry { visitId: string; value: string | null; unit: string | null }
 interface ComputedPoint { visitId: string; value: number }
-interface Participant { id: string; studyId: string; firstName: string; lastName: string; status: string }
+interface Participant { id: string; studyId: string; chmhId?: string | null; firstName: string; lastName: string; status: string }
 
 interface QueueItem {
     id: string;
