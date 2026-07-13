@@ -3,10 +3,12 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import * as XLSX from 'xlsx';
+import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 // ─── Types ───
 interface Visit { visitId: string; visitType: string; visitDate: string | null }
-interface Analyte { code: string; name: string; category: string | null; type: string; unit: string | null; coding: string | null }
+type Analyte = { code: string; name: string; category: string | null; type: string; unit: string | null; coding: string | null }
 interface ResultEntry { visitId: string; value: string | null; unit: string | null }
 interface ComputedPoint { visitId: string; value: number }
 interface Participant { id: string; studyId: string; chmhId?: string | null; firstName: string; lastName: string; status: string }
@@ -40,6 +42,7 @@ const KIDNEY_CODES = new Set(['ACR', 'CRE_S', 'ALB_U', 'CRE_U', 'MALB', 'CISTC']
 const TOOLTIP_STYLE = { backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' };
 
 export default function LabsPage() {
+    const { t } = useLanguage();
     // ─── Participant selector state ───
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [participantSearch, setParticipantSearch] = useState('');
@@ -126,7 +129,7 @@ export default function LabsPage() {
                 for (let i = 1; i <= pdfDoc.numPages; i++) {
                     const page = await pdfDoc.getPage(i);
                     const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map((it: any) => it.str).join(' ');
+                    const pageText = textContent.items.filter((it: any) => 'str' in it).map((it: any) => it.str).join(' ');
                     fullText += pageText + '\\n';
                 }
 
@@ -292,7 +295,7 @@ export default function LabsPage() {
 
         if (format === 'csv') {
             const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `labs_${data.participant.studyId}.csv`; a.click();
             URL.revokeObjectURL(url);
@@ -324,7 +327,7 @@ export default function LabsPage() {
             for (let i = 1; i <= pdfDoc.numPages; i++) {
                 const page = await pdfDoc.getPage(i);
                 const textContent = await page.getTextContent();
-                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                const pageText = textContent.items.filter((item: any) => 'str' in item).map((item: any) => item.str).join(' ');
                 fullText += pageText + '\\n';
             }
 
@@ -468,8 +471,8 @@ export default function LabsPage() {
                 </div>
                 {data && (
                     <div className="flex items-center gap-2">
-                        <button onClick={() => exportData('csv')} className="btn-secondary text-sm">📥 CSV</button>
-                        <button onClick={() => exportData('xlsx')} className="btn-secondary text-sm">📥 Excel</button>
+                        <button onClick={() => exportData('csv')} className="btn-secondary text-sm">📥 {t('action.export_csv')}</button>
+                        <button onClick={() => exportData('xlsx')} className="btn-secondary text-sm">📥 {t('action.export_excel')}</button>
                     </div>
                 )}
             </div>
