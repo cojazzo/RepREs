@@ -5,21 +5,7 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
-interface WizardContextType {
-    visitId: string | null;
-    participantId: string;
-    participant: any;
-    setVisitId: (id: string) => void;
-    visitData: any;
-    setVisitData: (data: any) => void;
-}
-
-const WizardContext = createContext<WizardContextType | null>(null);
-export const useWizard = () => {
-    const ctx = useContext(WizardContext);
-    if (!ctx) throw new Error('useWizard must be used within WizardProvider');
-    return ctx;
-};
+import { WizardContext } from './WizardContext';
 
 export default function WizardLayout({ children }: { children: React.ReactNode }) {
     const params = useParams();

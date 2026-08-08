@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useWizard } from '../layout';
+import { useWizard } from '../WizardContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function ClinicalDataPage() {

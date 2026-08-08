@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useWizard } from '../layout';
+import { useWizard } from '../WizardContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface Analyte {
