@@ -3,55 +3,57 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWizard } from '../layout';
-
-const APEGO_OPTIONS = [
-    { value: 0, label: 'Nunca / Never' },
-    { value: 1, label: 'Rara vez / Rarely' },
-    { value: 2, label: 'A veces / Sometimes' },
-    { value: 3, label: 'Casi siempre / Almost always' },
-    { value: 4, label: 'Siempre / Always' },
-];
-
-const MOTIVO_OPTIONS = [
-    { value: 1, label: 'Forgetfulness' },
-    { value: 2, label: 'Adverse effects' },
-    { value: 3, label: 'Drug unavailability' },
-    { value: 4, label: 'Own decision' },
-    { value: 5, label: 'Medical indication' },
-    { value: 6, label: 'Other' },
-];
-
-const SYMPTOMS = [
-    { key: 'eaMareo', label: 'Dizziness' },
-    { key: 'eaGi', label: 'Nausea/Vomiting' },
-    { key: 'eaDolorAbd', label: 'Abdominal pain' },
-    { key: 'eaApetito', label: 'Decreased appetite' },
-    { key: 'eaFatiga', label: 'Weakness/Fatigue' },
-    { key: 'eaDolorRenal', label: 'Lumbar/Renal pain' },
-    { key: 'eaEdema', label: 'Leg edema' },
-    { key: 'eaOliguria', label: 'Decreased urine output' },
-    { key: 'eaEspuma', label: 'Increased foamy urine' },
-    { key: 'eaIvu', label: 'Diagnosed UTI' },
-    { key: 'eaAmputacion', label: 'Amputation of a limb' },
-    { key: 'eaMicosis', label: 'Mycosis' },
-];
-
-const SEVERITY_OPTIONS = [
-    { value: 1, label: 'Mild' },
-    { value: 2, label: 'Moderate' },
-    { value: 3, label: 'Severe' },
-];
-
-const RELATION_OPTIONS = [
-    { value: 1, label: 'Not related' },
-    { value: 2, label: 'Possible' },
-    { value: 3, label: 'Probable' },
-    { value: 4, label: 'Definite' },
-];
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AdverseEventsPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const { visitId, participantId, visitData } = useWizard();
+
+    const APEGO_OPTIONS = [
+        { value: 0, label: t('visit_ae.adherence.never') },
+        { value: 1, label: t('visit_ae.adherence.rarely') },
+        { value: 2, label: t('visit_ae.adherence.sometimes') },
+        { value: 3, label: t('visit_ae.adherence.almost_always') },
+        { value: 4, label: t('visit_ae.adherence.always') },
+    ];
+
+    const MOTIVO_OPTIONS = [
+        { value: 1, label: t('visit_ae.motivo.forgetfulness') },
+        { value: 2, label: t('visit_ae.motivo.adverse_effects') },
+        { value: 3, label: t('visit_ae.motivo.unavailability') },
+        { value: 4, label: t('visit_ae.motivo.own_decision') },
+        { value: 5, label: t('visit_ae.motivo.medical_indication') },
+        { value: 6, label: t('visit_ae.motivo.other') },
+    ];
+
+    const SYMPTOMS = [
+        { key: 'eaMareo', label: t('visit_ae.symptom.dizziness') },
+        { key: 'eaGi', label: t('visit_ae.symptom.nausea') },
+        { key: 'eaDolorAbd', label: t('visit_ae.symptom.abdominal_pain') },
+        { key: 'eaApetito', label: t('visit_ae.symptom.appetite') },
+        { key: 'eaFatiga', label: t('visit_ae.symptom.fatigue') },
+        { key: 'eaDolorRenal', label: t('visit_ae.symptom.renal_pain') },
+        { key: 'eaEdema', label: t('visit_ae.symptom.edema') },
+        { key: 'eaOliguria', label: t('visit_ae.symptom.oliguria') },
+        { key: 'eaEspuma', label: t('visit_ae.symptom.foamy_urine') },
+        { key: 'eaIvu', label: t('visit_ae.symptom.uti') },
+        { key: 'eaAmputacion', label: t('visit_ae.symptom.amputation') },
+        { key: 'eaMicosis', label: t('visit_ae.symptom.mycosis') },
+    ];
+
+    const SEVERITY_OPTIONS = [
+        { value: 1, label: t('visit_ae.severity.mild') },
+        { value: 2, label: t('visit_ae.severity.moderate') },
+        { value: 3, label: t('visit_ae.severity.severe') },
+    ];
+
+    const RELATION_OPTIONS = [
+        { value: 1, label: t('visit_ae.relation.unrelated') },
+        { value: 2, label: t('visit_ae.relation.possible') },
+        { value: 3, label: t('visit_ae.relation.probable') },
+        { value: 4, label: t('visit_ae.relation.definite') },
+    ];
 
     const [saving, setSaving] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -159,7 +161,7 @@ export default function AdverseEventsPage() {
         router.push(`/participants/${participantId}/visits/new/labs`);
     };
 
-    const BinaryToggle = ({ value, onChange, yesLabel = 'Yes', noLabel = 'No' }: {
+    const BinaryToggle = ({ value, onChange, yesLabel = t('common.yes'), noLabel = t('common.no') }: {
         value: number | null; onChange: (v: number) => void; yesLabel?: string; noLabel?: string;
     }) => (
         <div className="flex gap-1">
@@ -180,8 +182,8 @@ export default function AdverseEventsPage() {
         return (
             <div className="card text-center py-12 animate-fade-in">
                 <div className="text-5xl mb-4">✅</div>
-                <h2 className="text-xl font-bold text-white mb-2">Visit Submitted Successfully</h2>
-                <p className="text-surface-400">Redirecting to patient profile...</p>
+                <h2 className="text-xl font-bold text-white mb-2">{t('visit_ae.success')}</h2>
+                <p className="text-surface-400">{t('visit_ae.redirecting')}</p>
             </div>
         );
     }
@@ -189,25 +191,25 @@ export default function AdverseEventsPage() {
     return (
         <div className="space-y-4 animate-slide-up">
             <div className="flex items-center justify-between">
-                <h2 className="section-title">Step 3 — Adverse Events & Adherence</h2>
-                {saved && <span className="badge-success">✓ Saved</span>}
+                <h2 className="section-title">{t('visit_ae.title')}</h2>
+                {saved && <span className="badge-success">{t('common.saved')}</span>}
             </div>
 
             {/* Adherence Section */}
             <div className="card">
-                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">💊 Medication Adherence</h3>
+                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">{t('visit_ae.section.adherence')}</h3>
                 <div className="space-y-4">
                     <div>
-                        <label className="label">Has taken medication as indicated?</label>
+                        <label className="label">{t('visit_ae.adherence.taken')}</label>
                         <select className="select" value={adherence.apegoGlobal ?? ''} onChange={e => handleAdherenceChange('apegoGlobal', e.target.value ? Number(e.target.value) : null)}>
-                            <option value="">— Select —</option>
+                            <option value="">{t('common.select')}</option>
                             {APEGO_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="label">Doses forgotten in last 7 days</label>
+                            <label className="label">{t('visit_ae.adherence.forgotten')}</label>
                             <input type="number" className="input" min="0" placeholder="0"
                                 value={adherence.dosisOlvidadas7d} onChange={e => handleAdherenceChange('dosisOlvidadas7d', e.target.value)} />
                         </div>
@@ -217,18 +219,18 @@ export default function AdverseEventsPage() {
 
             {/* General AE Questions */}
             <div className="card">
-                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">⚠️ General</h3>
+                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">{t('visit_ae.section.general')}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label className="label">Any new symptom since last visit?</label>
+                        <label className="label">{t('visit_ae.general.new_symptom')}</label>
                         <BinaryToggle value={ae.eaNuevo} onChange={v => handleAeChange('eaNuevo', v)} />
                     </div>
                     <div>
-                        <label className="label">Required medical attention?</label>
+                        <label className="label">{t('visit_ae.general.medical_attention')}</label>
                         <BinaryToggle value={ae.eaAtencion} onChange={v => handleAeChange('eaAtencion', v)} />
                     </div>
                     <div>
-                        <label className="label">Stopped treatment due to discomfort?</label>
+                        <label className="label">{t('visit_ae.general.stopped')}</label>
                         <BinaryToggle value={ae.eaSuspension} onChange={v => handleAeChange('eaSuspension', v)} />
                     </div>
                 </div>
@@ -236,7 +238,7 @@ export default function AdverseEventsPage() {
 
             {/* Symptoms Checklist */}
             <div className="card">
-                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">🩹 Symptoms Checklist</h3>
+                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">{t('visit_ae.section.symptoms')}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                     {SYMPTOMS.map(symptom => (
                         <button
@@ -257,24 +259,24 @@ export default function AdverseEventsPage() {
 
             {/* AE Classification */}
             <div className="card">
-                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">📋 AE Classification</h3>
+                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">{t('visit_ae.section.classification')}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label className="label">Severity</label>
+                        <label className="label">{t('visit_ae.classification.severity')}</label>
                         <select className="select" value={ae.eaSeveridad ?? ''} onChange={e => handleAeChange('eaSeveridad', e.target.value ? Number(e.target.value) : null)}>
-                            <option value="">— Select —</option>
+                            <option value="">{t('common.select')}</option>
                             {SEVERITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="label">Relationship to drug</label>
+                        <label className="label">{t('visit_ae.classification.relation')}</label>
                         <select className="select" value={ae.eaRelacion ?? ''} onChange={e => handleAeChange('eaRelacion', e.target.value ? Number(e.target.value) : null)}>
-                            <option value="">— Select —</option>
+                            <option value="">{t('common.select')}</option>
                             {RELATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="label">Required hospitalization?</label>
+                        <label className="label">{t('visit_ae.classification.hospitalization')}</label>
                         <BinaryToggle value={ae.eaHosp} onChange={v => handleAeChange('eaHosp', v)} />
                     </div>
                 </div>
@@ -282,16 +284,16 @@ export default function AdverseEventsPage() {
 
             {/* Free Text */}
             <div className="card">
-                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">📝 Notes</h3>
+                <h3 className="text-sm font-semibold text-surface-300 mb-4 uppercase tracking-wider">{t('visit_ae.section.notes')}</h3>
                 <div className="space-y-4">
                     <div>
-                        <label className="label">AE Description</label>
-                        <textarea className="input min-h-[60px] resize-y" placeholder="Describe the adverse event..."
+                        <label className="label">{t('visit_ae.notes.description')}</label>
+                        <textarea className="input min-h-[60px] resize-y" placeholder={t('visit_ae.notes.desc_placeholder')}
                             value={ae.eaDesc} onChange={e => handleAeChange('eaDesc', e.target.value)} />
                     </div>
                     <div>
-                        <label className="label">Clinical Observations</label>
-                        <textarea className="input min-h-[60px] resize-y" placeholder="Additional observations..."
+                        <label className="label">{t('visit_ae.notes.observations')}</label>
+                        <textarea className="input min-h-[60px] resize-y" placeholder={t('visit_ae.notes.obs_placeholder')}
                             value={ae.observaciones} onChange={e => handleAeChange('observaciones', e.target.value)} />
                     </div>
                 </div>
@@ -301,14 +303,14 @@ export default function AdverseEventsPage() {
             <div className="card">
                 <div className="flex items-center justify-between">
                     <button onClick={handleBack} className="btn-ghost">
-                        ← Back: Labs
+                        {t('visit_ae.btn.back')}
                     </button>
                     <div className="flex items-center gap-3">
                         <button onClick={saveDraft} disabled={saving || !visitId} className="btn-secondary">
-                            {saving ? 'Saving...' : '💾 Save Draft'}
+                            {saving ? 'Saving...' : t('visit_ae.btn.save')}
                         </button>
                         <button onClick={handleSubmitVisit} disabled={submitting || !visitId} className="btn-primary bg-gradient-to-r from-emerald-600 to-emerald-500 shadow-emerald-500/25 hover:from-emerald-500 hover:to-emerald-400">
-                            {submitting ? 'Submitting...' : '✓ Submit Visit'}
+                            {submitting ? 'Submitting...' : t('visit_ae.btn.submit')}
                         </button>
                     </div>
                 </div>

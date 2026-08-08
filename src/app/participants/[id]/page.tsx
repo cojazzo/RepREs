@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface ParticipantDetail {
     id: string; studyId: string; firstName: string; lastName: string; sex: string; birthDate: string;
@@ -16,20 +17,16 @@ interface Analyte {
     id: string; code: string; name: string; type: string; unit: string | null; category: string | null; sortOrder: number;
 }
 
-const VISIT_LABELS: Record<string, string> = { BASELINE: 'V0 · Baseline', MONTH_2: 'V1 · Month 2', MONTH_4: 'V2 · Month 4', MONTH_6: 'V3 · Month 6' };
 const STATUS_BADGES: Record<string, string> = { ACTIVE: 'badge-success', COMPLETED: 'badge-info', WITHDRAWN: 'badge-warning', LOST_TO_FOLLOWUP: 'badge-danger', SCREENING: 'badge-neutral' };
-
-// Adherence & AE coded value labels
-const ADH_LABELS: Record<number, string> = { 1: 'Good', 2: 'Fair', 3: 'Poor', 4: 'Non-adherent' };
-const MOTIVO_LABELS: Record<number, string> = { 1: 'Side effects', 2: 'Forgot', 3: 'No access', 4: 'Felt better', 5: 'Other' };
-const SEV_LABELS: Record<number, string> = { 1: 'Mild', 2: 'Moderate', 3: 'Severe' };
-const REL_LABELS: Record<number, string> = { 1: 'Unrelated', 2: 'Unlikely', 3: 'Possible', 4: 'Probable', 5: 'Definite' };
 
 export default function ParticipantDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { t } = useLanguage();
     const { data: session } = useSession();
     const isAdmin = session?.user?.role === 'ADMIN';
+
+    const VISIT_LABELS: Record<string, string> = { BASELINE: t('visit.type.baseline'), MONTH_2: t('visit.type.month2'), MONTH_4: t('visit.type.month4'), MONTH_6: t('visit.type.month6') };
 
     const [participant, setParticipant] = useState<ParticipantDetail | null>(null);
     const [loading, setLoading] = useState(true);
@@ -114,7 +111,7 @@ export default function ParticipantDetailPage() {
     };
 
     if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full" /></div>;
-    if (!participant) return <div className="text-surface-400">Participant not found.</div>;
+    if (!participant) return <div className="text-surface-400">{t('participant.not_found')}</div>;
 
     const age = Math.floor((Date.now() - new Date(participant.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
 
@@ -123,40 +120,40 @@ export default function ParticipantDetailPage() {
             {/* Header */}
             <div className="page-header">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => router.back()} className="btn-ghost text-sm">← Back</button>
+                    <button onClick={() => router.back()} className="btn-ghost text-sm">{t('common.back')}</button>
                     <div>
                         <h1 className="page-title">{participant.studyId}</h1>
-                        <p className="text-surface-400 mt-1 text-sm">{participant.lastName}, {participant.firstName} • {participant.sex} • Age {age}</p>
+                        <p className="text-surface-400 mt-1 text-sm">{participant.lastName}, {participant.firstName} • {participant.sex} • {t('common.age')} {age}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className={STATUS_BADGES[participant.status] || 'badge-neutral'}>{participant.status.replace('_', ' ')}</span>
                     {participant.randomization && (
                         <span className="badge-info">
-                            Group {participant.randomization.armLabel}
+                            {t('participant.group')} {participant.randomization.armLabel}
                             {participant.randomization.treatment && ` — ${participant.randomization.treatment.replace('_', ' ')}`}
                         </span>
                     )}
-                    <Link href={`/participants/${participant.id}/visits/new`} className="btn-primary text-sm">➕ Add Visit</Link>
+                    <Link href={`/participants/${participant.id}/visits/new`} className="btn-primary text-sm">{t('participant.add_visit')}</Link>
                 </div>
             </div>
 
             {/* Info Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div className="card">
-                    <h3 className="text-sm font-medium text-surface-400 mb-2">Consent Date</h3>
+                    <h3 className="text-sm font-medium text-surface-400 mb-2">{t('participant.info.consent_date')}</h3>
                     <p className="text-lg text-white">{participant.consentDate ? new Date(participant.consentDate).toLocaleDateString() : '—'}</p>
                 </div>
                 <div className="card">
-                    <h3 className="text-sm font-medium text-surface-400 mb-2">Enrolled</h3>
+                    <h3 className="text-sm font-medium text-surface-400 mb-2">{t('participant.info.enrolled')}</h3>
                     <p className="text-lg text-white">{participant.enrolledAt ? new Date(participant.enrolledAt).toLocaleDateString() : '—'}</p>
                 </div>
                 <div className="card">
-                    <h3 className="text-sm font-medium text-surface-400 mb-2">CURP</h3>
+                    <h3 className="text-sm font-medium text-surface-400 mb-2">{t('participant.info.curp')}</h3>
                     <p className="text-lg text-white">{participant.curp || '—'}</p>
                 </div>
                 <div className="card">
-                    <h3 className="text-sm font-medium text-surface-400 mb-2">CHMH ID</h3>
+                    <h3 className="text-sm font-medium text-surface-400 mb-2">{t('participant.info.chmh_id')}</h3>
                     <p className="text-lg text-white">{participant.chmhId || '—'}</p>
                 </div>
             </div>
@@ -164,23 +161,23 @@ export default function ParticipantDetailPage() {
             {/* Status Update */}
             {isAdmin && (
                 <div className="card">
-                    <h2 className="section-title">Update Status</h2>
+                    <h2 className="section-title">{t('participant.status.update_title')}</h2>
                     <div className="flex gap-3">
                         <select className="select max-w-xs" value={statusUpdate} onChange={e => setStatusUpdate(e.target.value)}>
-                            <option value="SCREENING">Screening</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="WITHDRAWN">Withdrawn</option>
-                            <option value="LOST_TO_FOLLOWUP">Lost to Follow-up</option>
+                            <option value="SCREENING">{t('participant.status.screening')}</option>
+                            <option value="ACTIVE">{t('participant.status.active')}</option>
+                            <option value="COMPLETED">{t('participant.status.completed')}</option>
+                            <option value="WITHDRAWN">{t('participant.status.withdrawn')}</option>
+                            <option value="LOST_TO_FOLLOWUP">{t('participant.status.lost')}</option>
                         </select>
-                        <button onClick={updateStatus} className="btn-primary">Update Status</button>
+                        <button onClick={updateStatus} className="btn-primary">{t('participant.status.btn')}</button>
                     </div>
                 </div>
             )}
 
             {/* ═══════ VISIT TIMELINE ═══════ */}
             <div>
-                <h2 className="section-title mb-4">Visit Timeline</h2>
+                <h2 className="section-title mb-4">{t('participant.visits.title')}</h2>
                 <div className="space-y-4">
                     {participant.visits.map((visit: any) => {
                         const isExpanded = expandedVisit === visit.id;
@@ -203,7 +200,7 @@ export default function ParticipantDetailPage() {
                                         <div>
                                             <span className="text-sm font-semibold text-white">{VISIT_LABELS[visit.visitType] || visit.visitType}</span>
                                             <span className="text-xs text-surface-500 ml-3">
-                                                {visit.visitDate ? new Date(visit.visitDate).toLocaleDateString() : 'Pending'}
+                                                {visit.visitDate ? new Date(visit.visitDate).toLocaleDateString() : t('participant.visits.pending_date')}
                                             </span>
                                         </div>
                                     </div>
@@ -220,7 +217,7 @@ export default function ParticipantDetailPage() {
                                         )}
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${visit.completed || visit.status === 'SUBMITTED'
                                             ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface-600/40 text-surface-400'}`}>
-                                            {visit.status === 'SUBMITTED' ? 'Submitted' : visit.completed ? 'Complete' : 'Draft'}
+                                            {visit.status === 'SUBMITTED' ? t('participant.visits.status.submitted') : visit.completed ? t('participant.visits.status.complete') : t('participant.visits.status.draft')}
                                         </span>
                                         <span className={`text-surface-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>▼</span>
                                     </div>
@@ -234,25 +231,25 @@ export default function ParticipantDetailPage() {
                                             <div className="flex justify-end">
                                                 {isEditing ? (
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => setEditingVisit(null)} className="btn-ghost text-sm">Cancel</button>
+                                                        <button onClick={() => setEditingVisit(null)} className="btn-ghost text-sm">{t('participant.btn.cancel')}</button>
                                                         <button onClick={() => saveEdit(visit)} disabled={saving} className="btn-primary text-sm">
-                                                            {saving ? 'Saving...' : '💾 Save Changes'}
+                                                            {saving ? 'Saving...' : t('participant.btn.save')}
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => startEdit(visit)} className="btn-secondary text-sm">✏️ Edit</button>
+                                                    <button onClick={() => startEdit(visit)} className="btn-secondary text-sm">{t('participant.btn.edit')}</button>
                                                 )}
                                             </div>
                                         )}
 
-                                        {!hasData && <p className="text-surface-500 text-sm text-center py-4">No data entered for this visit yet</p>}
+                                        {!hasData && <p className="text-surface-500 text-sm text-center py-4">{t('participant.visits.no_data')}</p>}
 
                                         {/* ── CLINICAL ── */}
                                         {(clinical.bpSys || clinical.systolicBp || clinical.weightKg || clinical.weight) && (
                                             <div>
-                                                <h3 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2">Clinical</h3>
+                                                <h3 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2">{t('participant.visits.clinical')}</h3>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                                    <Metric label="BP (sys/dia)" value={isEditing ? undefined : `${clinical.bpSys || clinical.systolicBp || '—'}/${clinical.bpDia || clinical.diastolicBp || '—'}`}
+                                                    <Metric label={t('participant.vitals.bp')} value={isEditing ? undefined : `${clinical.bpSys || clinical.systolicBp || '—'}/${clinical.bpDia || clinical.diastolicBp || '—'}`}
                                                         editMode={isEditing} editNode={isEditing ? (
                                                             <div className="flex gap-1">
                                                                 <input type="number" className="input text-xs w-16" value={editData.clinical?.bpSys ?? ''} onChange={e => setEditData((d: any) => ({ ...d, clinical: { ...d.clinical, bpSys: e.target.value ? Number(e.target.value) : '' } }))} />
@@ -260,26 +257,26 @@ export default function ParticipantDetailPage() {
                                                                 <input type="number" className="input text-xs w-16" value={editData.clinical?.bpDia ?? ''} onChange={e => setEditData((d: any) => ({ ...d, clinical: { ...d.clinical, bpDia: e.target.value ? Number(e.target.value) : '' } }))} />
                                                             </div>
                                                         ) : undefined} unit="mmHg" />
-                                                    <Metric label="Weight" value={isEditing ? undefined : (clinical.weightKg || clinical.weight || '—')}
+                                                    <Metric label={t('participant.vitals.weight')} value={isEditing ? undefined : (clinical.weightKg || clinical.weight || '—')}
                                                         editMode={isEditing} editNode={isEditing ? (
                                                             <input type="number" step="0.1" className="input text-xs" value={editData.clinical?.weightKg ?? ''} onChange={e => setEditData((d: any) => ({ ...d, clinical: { ...d.clinical, weightKg: e.target.value ? Number(e.target.value) : '' } }))} />
                                                         ) : undefined} unit="kg" />
-                                                    <Metric label="Height" value={isEditing ? undefined : (clinical.heightCm || clinical.height || '—')}
+                                                    <Metric label={t('participant.vitals.height')} value={isEditing ? undefined : (clinical.heightCm || clinical.height || '—')}
                                                         editMode={isEditing} editNode={isEditing ? (
                                                             <input type="number" step="0.1" className="input text-xs" value={editData.clinical?.heightCm ?? ''} onChange={e => setEditData((d: any) => ({ ...d, clinical: { ...d.clinical, heightCm: e.target.value ? Number(e.target.value) : '' } }))} />
                                                         ) : undefined} unit="cm" />
-                                                    <Metric label="BMI" value={
+                                                    <Metric label={t('participant.vitals.bmi')} value={
                                                         isEditing
                                                             ? (editData.clinical?.weightKg && editData.clinical?.heightCm
                                                                 ? (editData.clinical.weightKg / Math.pow(editData.clinical.heightCm / 100, 2)).toFixed(1) : '—')
                                                             : (clinical.bmi || (clinical.weightKg && clinical.heightCm
                                                                 ? (clinical.weightKg / Math.pow(clinical.heightCm / 100, 2)).toFixed(1) : '—'))
                                                     } unit="kg/m²" />
-                                                    <Metric label="Heart Rate" value={isEditing ? undefined : (clinical.hrBpm || clinical.heartRate || '—')}
+                                                    <Metric label={t('participant.vitals.hr')} value={isEditing ? undefined : (clinical.hrBpm || clinical.heartRate || '—')}
                                                         editMode={isEditing} editNode={isEditing ? (
                                                             <input type="number" className="input text-xs" value={editData.clinical?.hrBpm ?? ''} onChange={e => setEditData((d: any) => ({ ...d, clinical: { ...d.clinical, hrBpm: e.target.value ? Number(e.target.value) : '' } }))} />
                                                         ) : undefined} unit="bpm" />
-                                                    <Metric label="Waist" value={isEditing ? undefined : (clinical.waistCm || '—')}
+                                                    <Metric label={t('participant.vitals.waist')} value={isEditing ? undefined : (clinical.waistCm || '—')}
                                                         editMode={isEditing} editNode={isEditing ? (
                                                             <input type="number" step="0.1" className="input text-xs" value={editData.clinical?.waistCm ?? ''} onChange={e => setEditData((d: any) => ({ ...d, clinical: { ...d.clinical, waistCm: e.target.value ? Number(e.target.value) : '' } }))} />
                                                         ) : undefined} unit="cm" />
@@ -291,7 +288,7 @@ export default function ParticipantDetailPage() {
                                         {analytes.length > 0 && (
                                             <div>
                                                 <h3 className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2">
-                                                    Lab Results <span className="text-surface-500 font-normal">({labCount} filled)</span>
+                                                    {t('participant.visits.lab_results')} <span className="text-surface-500 font-normal">({labCount} {t('participant.visits.filled')})</span>
                                                 </h3>
                                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                                                     {analytes.map(a => {
@@ -331,17 +328,17 @@ export default function ParticipantDetailPage() {
             {/* Adverse Events Table */}
             {participant.adverseEvents.length > 0 && (
                 <div className="card">
-                    <h2 className="section-title">Adverse Events ({participant.adverseEvents.length})</h2>
+                    <h2 className="section-title">{t('participant.ae.title')} ({participant.adverseEvents.length})</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-surface-700/50">
-                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">Description</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">Severity</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">Relation</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">Outcome</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">SAE</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">Start Date</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">{t('participant.ae.col.description')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">{t('participant.ae.col.severity')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">{t('participant.ae.col.relation')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">{t('participant.ae.col.outcome')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">{t('participant.ae.col.sae')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 px-4 py-2">{t('participant.ae.col.start_date')}</th>
                                 </tr>
                             </thead>
                             <tbody>

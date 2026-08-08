@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface AuditEntry {
     id: string;
@@ -15,6 +16,7 @@ interface AuditEntry {
 }
 
 export default function AuditLogPage() {
+    const { t } = useLanguage();
     const [logs, setLogs] = useState<AuditEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -35,21 +37,21 @@ export default function AuditLogPage() {
         <div className="space-y-6 animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Audit Trail</h1>
-                    <p className="text-surface-400 mt-1 text-sm">Complete log of all data changes with user and timestamp</p>
+                    <h1 className="page-title">{t('audit.title')}</h1>
+                    <p className="text-surface-400 mt-1 text-sm">{t('audit.subtitle')}</p>
                 </div>
             </div>
 
             {/* Filter */}
             <div className="flex gap-4">
                 <select className="select max-w-xs" value={entityFilter} onChange={e => { setEntityFilter(e.target.value); setPage(1); }}>
-                    <option value="">All Entities</option>
-                    <option value="Participant">Participant</option>
-                    <option value="Visit">Visit</option>
-                    <option value="LabResult">Lab Result</option>
-                    <option value="AdverseEvent">Adverse Event</option>
-                    <option value="Dispensation">Dispensation</option>
-                    <option value="DataQuery">Data Query</option>
+                    <option value="">{t('audit.filter.all')}</option>
+                    <option value="Participant">{t('audit.filter.participant')}</option>
+                    <option value="Visit">{t('audit.filter.visit')}</option>
+                    <option value="LabResult">{t('audit.filter.lab')}</option>
+                    <option value="AdverseEvent">{t('audit.filter.ae')}</option>
+                    <option value="Dispensation">{t('audit.filter.dispensation')}</option>
+                    <option value="DataQuery">{t('audit.filter.query')}</option>
                 </select>
             </div>
 
@@ -64,12 +66,12 @@ export default function AuditLogPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-surface-700/50 bg-surface-800/50">
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Timestamp</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">User</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Action</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Entity</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Entity ID</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Details</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('audit.col.timestamp')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('audit.col.user')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('audit.col.action')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('audit.col.entity')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('audit.col.entity_id')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('audit.col.details')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -96,9 +98,9 @@ export default function AuditLogPage() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-center gap-2 p-4 border-t border-surface-700/50">
-                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-ghost text-sm">← Prev</button>
+                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-ghost text-sm">← {t('common.prev')}</button>
                         <span className="text-sm text-surface-400">Page {page} of {totalPages}</span>
-                        <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn-ghost text-sm">Next →</button>
+                        <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="btn-ghost text-sm">{t('common.next_page')} →</button>
                     </div>
                 )}
             </div>

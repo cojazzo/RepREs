@@ -24,6 +24,9 @@ export async function GET(req: NextRequest) {
                 chmhId: true,
                 status: true,
                 phone: true,
+                consentDate: true,
+                enrolledAt: true,
+                createdAt: true,
                 ...(showTreatment ? { randomization: { select: { armLabel: true } } } : {})
             },
             orderBy: { studyId: 'asc' },
@@ -38,7 +41,10 @@ export async function GET(req: NextRequest) {
             curp: p.curp || '',
             chmhId: p.chmhId || '',
             status: p.status,
-            ... (showTreatment ? { randomization: p.randomization?.armLabel || 'Not Randomized' } : {}),
+            consentDate: p.consentDate ? p.consentDate.toISOString().split('T')[0] : '',
+            enrolledAt: p.enrolledAt ? p.enrolledAt.toISOString().split('T')[0] : '',
+            createdAt: p.createdAt ? p.createdAt.toISOString().split('T')[0] : '',
+            ...(showTreatment ? { randomization: p.randomization?.armLabel || 'Not Randomized' } : {}),
             phone: p.phone || ''
         }));
 

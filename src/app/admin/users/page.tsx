@@ -1,19 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface User {
     id: string; email: string; name: string; role: string; active: boolean; createdAt: string;
 }
-
-const ROLE_OPTIONS = [
-    { value: 'ADMIN', label: 'Administrator' },
-    { value: 'INVESTIGATOR', label: 'Investigator' },
-    { value: 'DATA_ENTRY', label: 'Data Entry' },
-    { value: 'MONITOR', label: 'Monitor' },
-    { value: 'PHARMACY', label: 'Pharmacy' },
-    { value: 'READ_ONLY', label: 'Read Only' },
-];
 
 const ROLE_COLORS: Record<string, string> = {
     ADMIN: 'bg-red-500/15 text-red-400',
@@ -25,9 +17,19 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function AdminUsersPage() {
+    const { t } = useLanguage();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const ROLE_OPTIONS = [
+        { value: 'ADMIN', label: t('admin.role.admin') },
+        { value: 'INVESTIGATOR', label: t('admin.role.inv') },
+        { value: 'DATA_ENTRY', label: t('admin.role.data') },
+        { value: 'MONITOR', label: t('admin.role.monitor') },
+        { value: 'PHARMACY', label: t('admin.role.pharmacy') },
+        { value: 'READ_ONLY', label: t('admin.role.read') },
+    ];
 
     // Create user
     const [showNew, setShowNew] = useState(false);
@@ -42,7 +44,7 @@ export default function AdminUsersPage() {
     const fetchUsers = () => {
         fetch('/api/admin/users')
             .then(r => {
-                if (r.status === 403) { setError('Admin access required'); setLoading(false); return []; }
+                if (r.status === 403) { setError(t('common.access_restricted')); setLoading(false); return []; }
                 return r.json();
             })
             .then(d => { if (Array.isArray(d)) setUsers(d); setLoading(false); })
@@ -71,10 +73,10 @@ export default function AdminUsersPage() {
     const handleSave = async () => {
         if (!editUser) return;
         if (editForm.password && editForm.password.length < 6) {
-            setSaveMsg({ type: 'err', text: 'Password must be at least 6 characters' }); return;
+            setSaveMsg({ type: 'err', text: t('admin.edit.pwd_min') }); return;
         }
         if (editForm.password && editForm.password !== editForm.confirmPassword) {
-            setSaveMsg({ type: 'err', text: 'Passwords do not match' }); return;
+            setSaveMsg({ type: 'err', text: t('admin.edit.pwd_match') }); return;
         }
         setSaving(true); setSaveMsg(null);
         const body: Record<string, any> = { name: editForm.name, role: editForm.role, active: editForm.active };
@@ -85,7 +87,7 @@ export default function AdminUsersPage() {
         });
         setSaving(false);
         if (res.ok) {
-            setSaveMsg({ type: 'ok', text: 'User updated successfully' });
+            setSaveMsg({ type: 'ok', text: t('admin.edit.success') });
             fetchUsers();
             setTimeout(() => setEditUser(null), 800);
         } else {
@@ -106,9 +108,9 @@ export default function AdminUsersPage() {
     if (error) {
         return (
             <div className="space-y-6 animate-fade-in">
-                <h1 className="page-title">User Management</h1>
+                <h1 className="page-title">{t('admin.title')}</h1>
                 <div className="card border-red-500/30 text-center py-12">
-                    <p className="text-red-400 text-lg mb-2">🔒 Access Restricted</p>
+                    <p className="text-red-400 text-lg mb-2">🔒 {t('common.access_restricted')}</p>
                     <p className="text-surface-400">{error}</p>
                 </div>
             </div>
@@ -119,39 +121,39 @@ export default function AdminUsersPage() {
         <div className="space-y-6 animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">User Management</h1>
-                    <p className="text-surface-400 mt-1 text-sm">{users.length} users registered</p>
+                    <h1 className="page-title">{t('admin.title')}</h1>
+                    <p className="text-surface-400 mt-1 text-sm">{users.length} {t('admin.subtitle')}</p>
                 </div>
-                <button onClick={() => setShowNew(true)} className="btn-primary">+ Add User</button>
+                <button onClick={() => setShowNew(true)} className="btn-primary">+ {t('admin.btn.add')}</button>
             </div>
 
             {/* New User Form */}
             {showNew && (
                 <div className="card border-primary-500/30">
-                    <h2 className="section-title">Create New User</h2>
+                    <h2 className="section-title">{t('admin.create.title')}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label className="label">Name</label>
+                            <label className="label">{t('admin.create.name')}</label>
                             <input className="input" value={newUser.name} onChange={e => setNewUser(u => ({ ...u, name: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">Email</label>
+                            <label className="label">{t('admin.create.email')}</label>
                             <input type="email" className="input" value={newUser.email} onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">Password</label>
+                            <label className="label">{t('admin.create.password')}</label>
                             <input type="password" className="input" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">Role</label>
+                            <label className="label">{t('admin.create.role')}</label>
                             <select className="select" value={newUser.role} onChange={e => setNewUser(u => ({ ...u, role: e.target.value }))}>
                                 {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
                         </div>
                     </div>
                     <div className="flex gap-3 justify-end">
-                        <button onClick={() => setShowNew(false)} className="btn-secondary">Cancel</button>
-                        <button onClick={createUser} className="btn-primary" disabled={!newUser.email || !newUser.name || !newUser.password}>Create User</button>
+                        <button onClick={() => setShowNew(false)} className="btn-secondary">{t('common.cancel')}</button>
+                        <button onClick={createUser} className="btn-primary" disabled={!newUser.email || !newUser.name || !newUser.password}>{t('admin.create.btn')}</button>
                     </div>
                 </div>
             )}
@@ -167,12 +169,12 @@ export default function AdminUsersPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-surface-700/50 bg-surface-800/50">
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Name</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Email</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Role</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Status</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Created</th>
-                                    <th className="text-right text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Actions</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('admin.col.name')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('admin.col.email')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('admin.col.role')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('admin.col.status')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('admin.col.created')}</th>
+                                    <th className="text-right text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('admin.col.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -199,13 +201,13 @@ export default function AdminUsersPage() {
                                                     ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
                                                     : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'}`}
                                             >
-                                                {user.active ? '● Active' : '● Suspended'}
+                                                {user.active ? `● ${t('admin.status.active')}` : `● ${t('admin.status.suspended')}`}
                                             </button>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-surface-500">{new Date(user.createdAt).toLocaleDateString()}</td>
                                         <td className="px-6 py-4 text-right">
                                             <button onClick={() => openEdit(user)} className="text-xs text-primary-400 hover:text-primary-300 font-medium transition-colors">
-                                                ✏️ Edit
+                                                ✏️ {t('admin.btn.edit')}
                                             </button>
                                         </td>
                                     </tr>
@@ -224,7 +226,7 @@ export default function AdminUsersPage() {
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-white">Edit User</h2>
+                            <h2 className="text-lg font-semibold text-white">{t('admin.edit.title')}</h2>
                             <button onClick={() => setEditUser(null)} className="text-surface-500 hover:text-white text-xl transition-colors">×</button>
                         </div>
 
@@ -232,13 +234,13 @@ export default function AdminUsersPage() {
 
                         {/* Name */}
                         <div>
-                            <label className="label">Name</label>
+                            <label className="label">{t('admin.edit.name')}</label>
                             <input className="input" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
                         </div>
 
                         {/* Role */}
                         <div>
-                            <label className="label">Role</label>
+                            <label className="label">{t('admin.edit.role')}</label>
                             <select className="select w-full" value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}>
                                 {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
@@ -252,33 +254,33 @@ export default function AdminUsersPage() {
                                     onChange={e => setEditForm(f => ({ ...f, active: e.target.checked }))}
                                     className="w-4 h-4 rounded"
                                 />
-                                <span className="text-sm text-surface-200">Account Active</span>
+                                <span className="text-sm text-surface-200">{t('admin.edit.active')}</span>
                             </label>
                             {!editForm.active && (
-                                <span className="text-[10px] bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">Suspended — user cannot log in</span>
+                                <span className="text-[10px] bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">{t('admin.edit.suspended_msg')}</span>
                             )}
                         </div>
 
                         {/* Password change */}
                         <div className="border-t border-surface-700/50 pt-4">
                             <label className="label">
-                                New Password <span className="text-surface-500 font-normal">(leave blank to keep current)</span>
+                                {t('admin.edit.new_pwd')} <span className="text-surface-500 font-normal">({t('admin.edit.pwd_hint')})</span>
                             </label>
                             <input
-                                type="password" className="input" placeholder="Min 6 characters"
+                                type="password" className="input" placeholder={t('admin.edit.pwd_min')}
                                 value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))}
                             />
                         </div>
                         {editForm.password && (
                             <div>
-                                <label className="label">Confirm Password</label>
+                                <label className="label">{t('admin.edit.confirm_pwd')}</label>
                                 <input
-                                    type="password" className="input" placeholder="Re-enter password"
+                                    type="password" className="input" placeholder={t('admin.edit.confirm_pwd')}
                                     value={editForm.confirmPassword}
                                     onChange={e => setEditForm(f => ({ ...f, confirmPassword: e.target.value }))}
                                 />
                                 {editForm.confirmPassword && editForm.password !== editForm.confirmPassword && (
-                                    <p className="text-xs text-red-400 mt-1">Passwords do not match</p>
+                                    <p className="text-xs text-red-400 mt-1">{t('admin.edit.pwd_match')}</p>
                                 )}
                             </div>
                         )}
@@ -292,9 +294,9 @@ export default function AdminUsersPage() {
 
                         {/* Actions */}
                         <div className="flex gap-3 justify-end pt-2">
-                            <button onClick={() => setEditUser(null)} className="btn-ghost">Cancel</button>
+                            <button onClick={() => setEditUser(null)} className="btn-ghost">{t('common.cancel')}</button>
                             <button onClick={handleSave} disabled={saving} className="btn-primary">
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? t('common.saving') : t('admin.edit.save')}
                             </button>
                         </div>
                     </div>

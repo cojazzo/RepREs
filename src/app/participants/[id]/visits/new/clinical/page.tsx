@@ -3,19 +3,21 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useWizard } from '../layout';
-
-const GODET_OPTIONS = [
-    { value: 0, label: 'None (0)' },
-    { value: 1, label: '+ (1)' },
-    { value: 2, label: '++ (2)' },
-    { value: 3, label: '+++ (3)' },
-    { value: 4, label: '++++ (4)' },
-];
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function ClinicalDataPage() {
     const router = useRouter();
     const params = useParams();
+    const { t } = useLanguage();
     const { visitId, participantId, visitData } = useWizard();
+
+    const GODET_OPTIONS = [
+        { value: 0, label: t('clinical.godet.0') },
+        { value: 1, label: t('clinical.godet.1') },
+        { value: 2, label: t('clinical.godet.2') },
+        { value: 3, label: t('clinical.godet.3') },
+        { value: 4, label: t('clinical.godet.4') },
+    ];
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -85,17 +87,17 @@ export default function ClinicalDataPage() {
     return (
         <div className="card animate-slide-up">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="section-title mb-0">Step 1 — Clinical Data</h2>
-                {saved && <span className="badge-success">✓ Saved</span>}
+                <h2 className="section-title mb-0">{t('clinical.title')}</h2>
+                {saved && <span className="badge-success">{t('common.saved')}</span>}
             </div>
 
             <div className="space-y-6">
                 {/* Blood Pressure */}
                 <div>
-                    <h3 className="text-sm font-semibold text-surface-300 mb-3 uppercase tracking-wider">Blood Pressure</h3>
+                    <h3 className="text-sm font-semibold text-surface-300 mb-3 uppercase tracking-wider">{t('clinical.section.bp')}</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="label">Systolic (mmHg)</label>
+                            <label className="label">{t('clinical.field.systolic')}</label>
                             <input
                                 type="number"
                                 className="input"
@@ -106,7 +108,7 @@ export default function ClinicalDataPage() {
                             />
                         </div>
                         <div>
-                            <label className="label">Diastolic (mmHg)</label>
+                            <label className="label">{t('clinical.field.diastolic')}</label>
                             <input
                                 type="number"
                                 className="input"
@@ -121,10 +123,10 @@ export default function ClinicalDataPage() {
 
                 {/* Anthropometrics */}
                 <div>
-                    <h3 className="text-sm font-semibold text-surface-300 mb-3 uppercase tracking-wider">Anthropometrics</h3>
+                    <h3 className="text-sm font-semibold text-surface-300 mb-3 uppercase tracking-wider">{t('clinical.section.anthropometrics')}</h3>
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                            <label className="label">Weight (kg)</label>
+                            <label className="label">{t('clinical.field.weight')}</label>
                             <input
                                 type="number"
                                 className="input"
@@ -135,7 +137,7 @@ export default function ClinicalDataPage() {
                             />
                         </div>
                         <div>
-                            <label className="label">Height (cm)</label>
+                            <label className="label">{t('clinical.field.height')}</label>
                             <input
                                 type="number"
                                 className="input"
@@ -146,14 +148,14 @@ export default function ClinicalDataPage() {
                             />
                         </div>
                         <div>
-                            <label className="label">BMI (auto)</label>
+                            <label className="label">{t('clinical.field.bmi')}</label>
                             <div className="input bg-surface-700/50 cursor-not-allowed text-surface-300">
                                 {bmi ?? '—'}
                             </div>
                         </div>
                     </div>
                     <div className="mt-4">
-                        <label className="label">Waist Circumference (cm)</label>
+                        <label className="label">{t('clinical.field.waist')}</label>
                         <input
                             type="number"
                             className="input max-w-xs"
@@ -167,10 +169,10 @@ export default function ClinicalDataPage() {
 
                 {/* Heart Rate + Godet */}
                 <div>
-                    <h3 className="text-sm font-semibold text-surface-300 mb-3 uppercase tracking-wider">Other Vitals</h3>
+                    <h3 className="text-sm font-semibold text-surface-300 mb-3 uppercase tracking-wider">{t('clinical.section.other')}</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="label">Heart Rate (bpm)</label>
+                            <label className="label">{t('clinical.field.hr')}</label>
                             <input
                                 type="number"
                                 className="input"
@@ -181,7 +183,7 @@ export default function ClinicalDataPage() {
                             />
                         </div>
                         <div>
-                            <label className="label">Godet Sign (Pitting Edema)</label>
+                            <label className="label">{t('clinical.field.godet')}</label>
                             <select
                                 className="select"
                                 value={form.godet}
@@ -197,10 +199,10 @@ export default function ClinicalDataPage() {
 
                 {/* Notes */}
                 <div>
-                    <label className="label">Notes (optional)</label>
+                    <label className="label">{t('clinical.field.notes')}</label>
                     <textarea
                         className="input min-h-[80px] resize-y"
-                        placeholder="Additional clinical notes..."
+                        placeholder={t('clinical.placeholder.notes')}
                         value={form.notes}
                         onChange={e => handleChange('notes', e.target.value)}
                     />
@@ -209,10 +211,10 @@ export default function ClinicalDataPage() {
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-4 border-t border-surface-700/50">
                     <button onClick={saveDraft} disabled={saving || !visitId} className="btn-secondary">
-                        {saving ? 'Saving...' : '💾 Save Draft'}
+                        {saving ? 'Saving...' : t('clinical.btn.save')}
                     </button>
                     <button onClick={handleNext} disabled={!visitId} className="btn-primary">
-                        Next: Labs →
+                        {t('clinical.btn.next')}
                     </button>
                 </div>
             </div>

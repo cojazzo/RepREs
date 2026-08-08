@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { signIn, getCsrfToken } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -26,7 +28,7 @@ export default function LoginPage() {
         });
 
         if (result?.error) {
-            setError('Invalid email or password');
+            setError(t('login.error'));
             setLoading(false);
         } else {
             router.push('/dashboard');
@@ -50,34 +52,34 @@ export default function LoginPage() {
                         <span className="text-white font-bold text-2xl">R</span>
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">RepREs</h1>
-                    <p className="text-surface-400 text-sm">Clinical Trial Management System</p>
-                    <p className="text-surface-500 text-xs mt-1">Dapagliflozin 10mg vs Placebo • Double-Blind RCT</p>
+                    <p className="text-surface-400 text-sm">{t('login.title')}</p>
+                    <p className="text-surface-500 text-xs mt-1">{t('login.subtitle')}</p>
                 </div>
 
                 {/* Login Card */}
                 <div className="card animate-slide-up">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <label htmlFor="email" className="label">Email Address</label>
+                            <label htmlFor="email" className="label">{t('login.email_label')}</label>
                             <input
                                 id="email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="input"
-                                placeholder="you@example.com"
+                                placeholder={t('login.email_placeholder')}
                                 required
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="label">Password</label>
+                            <label htmlFor="password" className="label">{t('login.password_label')}</label>
                             <input
                                 id="password"
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="input"
-                                placeholder="••••••••"
+                                placeholder={t('login.password_placeholder')}
                                 required
                             />
                         </div>
@@ -99,10 +101,10 @@ export default function LoginPage() {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
-                                    Signing in...
+                                    {t('login.signing_in')}
                                 </span>
                             ) : (
-                                'Sign In'
+                                t('login.sign_in')
                             )}
                         </button>
                     </form>

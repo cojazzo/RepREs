@@ -74,11 +74,17 @@ export default function LabsPage() {
     const [bulkQueue, setBulkQueue] = useState<QueueItem[]>([]);
     const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
-    // Initialize PDF.js worker
+    // Initialize PDF.js worker (Safari-compatible)
     useEffect(() => {
         const initPdfWorker = async () => {
             const pdfjsLib = await import('pdfjs-dist');
-            pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            if (isSafari) {
+                // Safari doesn't support .mjs web workers — run pdfjs in main thread
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+            } else {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+            }
         };
         initPdfWorker();
     }, []);
@@ -128,9 +134,9 @@ export default function LabsPage() {
                 let fullText = '';
                 for (let i = 1; i <= pdfDoc.numPages; i++) {
                     const page = await pdfDoc.getPage(i);
-                    const textContent = await page.getTextContent();
+                    const textContent = await page.getTextContent({ includeMarkedContent: false });
                     const pageText = textContent.items.filter((it: any) => 'str' in it).map((it: any) => it.str).join(' ');
-                    fullText += pageText + '\\n';
+                    fullText += pageText + '\n';
                 }
 
                 const res = await fetch('/api/extract-labs', {
@@ -145,8 +151,8 @@ export default function LabsPage() {
                 let match = null;
                 const chmhIdObj = apiData.extractedData["No. de expediente"] || apiData.extractedData["No. de Expediente"];
                 if (chmhIdObj && chmhIdObj.value) {
-                   const rawId = String(chmhIdObj.value).replace(/\\s+/g, '');
-                   const chmhId = rawId.replace(/^(\\d{4})(\\d{5})$/, '$1-$2');
+                   const rawId = String(chmhIdObj.value).replace(/\s+/g, '');
+                   const chmhId = rawId.replace(/^(\d{4})(\d{5})$/, '$1-$2');
                    match = participants.find(p => p.chmhId === chmhId || p.studyId === chmhId || p.chmhId === rawId);
                 }
                 
@@ -326,9 +332,9 @@ export default function LabsPage() {
             let fullText = '';
             for (let i = 1; i <= pdfDoc.numPages; i++) {
                 const page = await pdfDoc.getPage(i);
-                const textContent = await page.getTextContent();
+                const textContent = await page.getTextContent({ includeMarkedContent: false });
                 const pageText = textContent.items.filter((item: any) => 'str' in item).map((item: any) => item.str).join(' ');
-                fullText += pageText + '\\n';
+                fullText += pageText + '\n';
             }
 
             const res = await fetch('/api/extract-labs', {
@@ -466,8 +472,8 @@ export default function LabsPage() {
             {/* ═══════ PAGE HEADER ═══════ */}
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Laboratory Results</h1>
-                    <p className="text-surface-400 mt-1 text-sm">Longitudinal lab comparison across visits per participant</p>
+                    <h1 className="page-title">{t('labs.title')}</h1>
+                    <p className="text-surface-400 mt-1 text-sm">{t('labs.subtitle')}</p>
                 </div>
                 {data && (
                     <div className="flex items-center gap-2">
@@ -479,14 +485,14 @@ export default function LabsPage() {
 
             {/* ═══════ PARTICIPANT SELECTOR ═══════ */}
             <div className="card">
-                <label className="label mb-1">Select Participant</label>
+                <label className="label mb-1">{t('labs.select_participant')}</label>
                 <div className="relative z-10">
                     <div className="flex gap-3">
                         <div className="flex-1 relative">
                             <input
                                 type="text"
                                 className="input"
-                                placeholder="🔍 Search by ID, name..."
+                                placeholder={t('labs.search_placeholder')}
                                 value={participantSearch}
                                 onChange={e => { setParticipantSearch(e.target.value); setDropdownOpen(true); }}
                                 onFocus={() => setDropdownOpen(true)}
@@ -499,7 +505,7 @@ export default function LabsPage() {
                                         {loadingList ? (
                                             <div className="flex justify-center py-4"><div className="animate-spin w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full" /></div>
                                         ) : filteredParticipants.length === 0 ? (
-                                            <p className="text-surface-500 text-sm text-center py-4">No participants found</p>
+                                            <p className="text-surface-500 text-sm text-center py-4">{t('labs.no_participants')}</p>
                                         ) : (
                                             filteredParticipants.map(p => (
                                                 <button
@@ -513,7 +519,7 @@ export default function LabsPage() {
                                                         <span className="text-surface-400 text-sm ml-2">{p.lastName}, {p.firstName}</span>
                                                     </div>
                                                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${p.status === 'ACTIVE' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-surface-600/40 text-surface-400'}`}>
-                                                        {p.status}
+                                                        {p.status === 'ACTIVE' ? t('common.active') : p.status}
                                                     </span>
                                                 </button>
                                             ))
@@ -523,11 +529,11 @@ export default function LabsPage() {
                             )}
                         </div>
                         <select className="select max-w-[160px]" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                            <option value="">All Statuses</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="SCREENING">Screening</option>
-                            <option value="WITHDRAWN">Withdrawn</option>
+                            <option value="">{t('labs.filter.all_statuses')}</option>
+                            <option value="ACTIVE">{t('labs.filter.active')}</option>
+                            <option value="COMPLETED">{t('labs.filter.completed')}</option>
+                            <option value="SCREENING">{t('labs.filter.screening')}</option>
+                            <option value="WITHDRAWN">{t('labs.filter.withdrawn')}</option>
                         </select>
                     </div>
                 </div>
@@ -542,9 +548,9 @@ export default function LabsPage() {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 border-b border-surface-700/50 pb-4 relative z-10">
                     <div>
                         <h2 className="section-title flex items-center gap-2 mb-1">
-                            <span className="text-xl">📄</span> AI Lab Extractor
+                            <span className="text-xl">📄</span> {t('labs.ai.title')}
                         </h2>
-                        <p className="text-sm text-surface-400">Extract labs automatically using Llama 3.</p>
+                        <p className="text-sm text-surface-400">{t('labs.ai.subtitle')}</p>
                     </div>
                     
                     <div className="flex bg-surface-800/80 p-1 rounded-xl border border-surface-600/30 mt-4 md:mt-0">
@@ -552,13 +558,13 @@ export default function LabsPage() {
                             onClick={() => setExtractorMode('single')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${extractorMode === 'single' ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20' : 'text-surface-400 hover:text-white hover:bg-surface-700'}`}
                         >
-                            Single Upload
+                            {t('labs.ai.single')}
                         </button>
                         <button 
                             onClick={() => setExtractorMode('bulk')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${extractorMode === 'bulk' ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20' : 'text-surface-400 hover:text-white hover:bg-surface-700'}`}
                         >
-                            Bulk Queue
+                            {t('labs.ai.bulk')}
                         </button>
                     </div>
                 </div>
@@ -568,7 +574,7 @@ export default function LabsPage() {
                     <div className="col-span-1 space-y-4">
                         <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-primary-500/30 border-dashed rounded-xl cursor-pointer bg-primary-500/5 hover:bg-primary-500/10 transition-colors">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <p className="mb-2 text-sm text-primary-400 font-semibold">{extracting ? 'Extracting with Llama 3...' : 'Click to upload PDF'}</p>
+                                <p className="mb-2 text-sm text-primary-400 font-semibold">{extracting ? t('labs.ai.extracting') : t('labs.ai.upload_label')}</p>
                             </div>
                             <input type="file" className="hidden" accept=".pdf" onChange={handlePdfUpload} disabled={extracting} />
                         </label>
@@ -579,7 +585,7 @@ export default function LabsPage() {
                         {suggestedParticipant && suggestedParticipant.id !== selectedId && (
                             <div className="bg-primary-500/10 border border-primary-500/30 p-3 rounded-xl mb-4 flex flex-col gap-2 text-sm animate-fade-in">
                                 <p className="text-primary-400">
-                                    <strong>💡 AI Match:</strong> Found <em>{suggestedParticipant.lastName}, {suggestedParticipant.firstName}</em> ({suggestedParticipant.chmhId})
+                                    <strong>{t('labs.ai.match')}</strong> <em>{suggestedParticipant.lastName}, {suggestedParticipant.firstName}</em> ({suggestedParticipant.chmhId})
                                 </p>
                                 <button 
                                     className="btn-outline-primary py-1.5 px-3 text-xs w-full font-semibold"
@@ -588,19 +594,19 @@ export default function LabsPage() {
                                         setParticipantSearch(`${suggestedParticipant.studyId} — ${suggestedParticipant.lastName}, ${suggestedParticipant.firstName}`);
                                     }}
                                 >
-                                    Click to Select This Patient
+                                    {t('labs.ai.click_to_select')}
                                 </button>
                             </div>
                         )}
 
                         {extractedData && (
                             <div className="bg-surface-800 p-4 rounded-xl border border-surface-600">
-                                <label className="label mb-1">Assign to Visit</label>
+                                <label className="label mb-1">{t('labs.ai.assign_visit')}</label>
                                 <select className="select w-full mb-4" value={pdfVisitType} onChange={e => setPdfVisitType(e.target.value)}>
-                                    <option value="BASELINE">V0 · Baseline</option>
-                                    <option value="MONTH_2">V1 · Month 2</option>
-                                    <option value="MONTH_4">V2 · Month 4</option>
-                                    <option value="MONTH_6">V3 · Month 6</option>
+                                    <option value="BASELINE">{t('labs.ai.visit.v0')}</option>
+                                    <option value="MONTH_2">{t('labs.ai.visit.v1')}</option>
+                                    <option value="MONTH_4">{t('labs.ai.visit.v2')}</option>
+                                    <option value="MONTH_6">{t('labs.ai.visit.v3')}</option>
                                 </select>
                                 <button 
                                     onClick={handleSaveToProfile} 
@@ -611,7 +617,7 @@ export default function LabsPage() {
                                         : 'btn-primary shadow-primary-500/20'
                                     }`}
                                 >
-                                    {savingLabs ? 'Saving...' : !selectedId ? '⚠️ Select a Patient First' : '💾 Save to Selected Patient'}
+                                    {savingLabs ? t('labs.ai.btn.saving') : !selectedId ? t('labs.ai.btn.no_patient') : t('labs.ai.btn.save')}
                                 </button>
                             </div>
                         )}
@@ -621,15 +627,15 @@ export default function LabsPage() {
                         {extracting ? (
                             <div className="h-full min-h-[200px] flex flex-col items-center justify-center bg-surface-800 rounded-xl border border-surface-700/50">
                                 <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mb-4" />
-                                <p className="text-surface-400 animate-pulse">Running exhaustive extraction...</p>
+                                <p className="text-surface-400 animate-pulse">{t('labs.ai.running')}</p>
                             </div>
                         ) : extractedData ? (
                             <div className="bg-surface-800 rounded-xl border border-surface-700/50 max-h-80 overflow-y-auto">
                                 <table className="w-full text-sm">
                                     <thead className="bg-surface-800/90 sticky top-0 backdrop-blur-sm z-10 border-b border-surface-700">
                                         <tr>
-                                            <th className="text-left px-4 py-3 font-medium text-surface-300">Target Field</th>
-                                            <th className="text-right px-4 py-3 font-medium text-surface-300">Extracted Value</th>
+                                            <th className="text-left px-4 py-3 font-medium text-surface-300">{t('labs.ai.col.field')}</th>
+                                            <th className="text-right px-4 py-3 font-medium text-surface-300">{t('labs.ai.col.value')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-surface-700/50">
@@ -648,7 +654,7 @@ export default function LabsPage() {
                         ) : (
                             <div className="h-full min-h-[200px] flex flex-col items-center justify-center bg-surface-800/50 rounded-xl border border-surface-700/30 text-surface-500 border-dashed">
                                 <span className="text-3xl mb-2 opacity-50">📋</span>
-                                <p>Extracted data will appear here</p>
+                                <p>{t('labs.ai.placeholder')}</p>
                             </div>
                         )}
                     </div>
@@ -657,10 +663,10 @@ export default function LabsPage() {
                     <div className="relative z-10">
                         <div className="mb-6 flex gap-4 items-center">
                             <label className="btn-primary py-2 px-6 shadow-lg shadow-primary-500/20 cursor-pointer flex-shrink-0">
-                                <span>➕ Select PDFs</span>
+                                <span>{t('labs.ai.select_pdfs')}</span>
                                 <input type="file" className="hidden" multiple accept=".pdf" onChange={handleBulkUploadDrop} />
                             </label>
-                            <p className="text-sm text-surface-400">Select multiple PDF files. They will be processed one by one automatically.</p>
+                            <p className="text-sm text-surface-400">{t('labs.ai.bulk_hint')}</p>
                         </div>
                         
                         {bulkQueue.length > 0 ? (
@@ -668,11 +674,11 @@ export default function LabsPage() {
                                 <table className="w-full text-sm">
                                     <thead className="bg-surface-800 border-b border-surface-700/50 text-surface-300">
                                         <tr>
-                                            <th className="px-4 py-3 text-left font-medium">File Name</th>
-                                            <th className="px-4 py-3 text-left font-medium">Status</th>
-                                            <th className="px-4 py-3 text-left font-medium">Extracted Match</th>
-                                            <th className="px-4 py-3 text-left font-medium">Visit</th>
-                                            <th className="px-4 py-3 text-right font-medium">Action</th>
+                                            <th className="px-4 py-3 text-left font-medium">{t('labs.ai.bulk.col.file')}</th>
+                                            <th className="px-4 py-3 text-left font-medium">{t('labs.ai.bulk.col.status')}</th>
+                                            <th className="px-4 py-3 text-left font-medium">{t('labs.ai.bulk.col.match')}</th>
+                                            <th className="px-4 py-3 text-left font-medium">{t('labs.ai.bulk.col.visit')}</th>
+                                            <th className="px-4 py-3 text-right font-medium">{t('labs.ai.bulk.col.action')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-surface-700/30">
@@ -682,12 +688,12 @@ export default function LabsPage() {
                                                     {item.file.name}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    {item.status === 'PENDING' && <span className="text-surface-400">⏳ Pending</span>}
-                                                    {item.status === 'EXTRACTING' && <span className="text-primary-400 flex items-center gap-2"><div className="animate-spin w-3 h-3 border-2 border-primary-500 border-t-transparent rounded-full" /> Extracting...</span>}
-                                                    {item.status === 'AWAITING_REVIEW' && <span className="text-amber-400">👀 Awaiting Review</span>}
-                                                    {item.status === 'SAVING' && <span className="text-emerald-400">💾 Saving...</span>}
-                                                    {item.status === 'SAVED' && <span className="text-emerald-500">✅ Saved</span>}
-                                                    {item.status === 'ERROR' && <span className="text-red-400" title={item.error}>❌ Error</span>}
+                                                    {item.status === 'PENDING' && <span className="text-surface-400">{t('labs.ai.bulk.status.pending')}</span>}
+                                                    {item.status === 'EXTRACTING' && <span className="text-primary-400 flex items-center gap-2"><div className="animate-spin w-3 h-3 border-2 border-primary-500 border-t-transparent rounded-full" /> {t('labs.ai.bulk.status.extracting')}</span>}
+                                                    {item.status === 'AWAITING_REVIEW' && <span className="text-amber-400">{t('labs.ai.bulk.status.review')}</span>}
+                                                    {item.status === 'SAVING' && <span className="text-emerald-400">{t('labs.ai.bulk.status.saving')}</span>}
+                                                    {item.status === 'SAVED' && <span className="text-emerald-500">{t('labs.ai.bulk.status.saved')}</span>}
+                                                    {item.status === 'ERROR' && <span className="text-red-400" title={item.error}>{t('labs.ai.bulk.status.error')}</span>}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     {item.suggestedParticipant ? (
@@ -696,7 +702,7 @@ export default function LabsPage() {
                                                             <div className="text-xs text-surface-400">{item.suggestedParticipant.chmhId}</div>
                                                         </div>
                                                     ) : item.status === 'AWAITING_REVIEW' ? (
-                                                        <span className="text-surface-500 italic">No match found</span>
+                                                        <span className="text-surface-500 italic">{t('labs.ai.no_match')}</span>
                                                     ) : <span className="text-surface-600">—</span>}
                                                 </td>
                                                 <td className="px-4 py-3">
@@ -710,10 +716,10 @@ export default function LabsPage() {
                                                         }}
                                                         disabled={item.status === 'SAVED' || item.status === 'SAVING'}
                                                     >
-                                                        <option value="BASELINE">V0 · Baseline</option>
-                                                        <option value="MONTH_2">V1 · Month 2</option>
-                                                        <option value="MONTH_4">V2 · Month 4</option>
-                                                        <option value="MONTH_6">V3 · Month 6</option>
+                                                        <option value="BASELINE">{t('labs.ai.visit.v0')}</option>
+                                                        <option value="MONTH_2">{t('labs.ai.visit.v1')}</option>
+                                                        <option value="MONTH_4">{t('labs.ai.visit.v2')}</option>
+                                                        <option value="MONTH_6">{t('labs.ai.visit.v3')}</option>
                                                     </select>
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
@@ -722,7 +728,7 @@ export default function LabsPage() {
                                                             onClick={() => handleSaveBulkItem(i)}
                                                             className="btn-outline-emerald py-1 px-3 text-xs"
                                                         >
-                                                            Approve & Save
+                                                            {t('labs.ai.bulk.approve')}
                                                         </button>
                                                     )}
                                                 </td>
@@ -734,8 +740,8 @@ export default function LabsPage() {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-surface-700/50 rounded-xl bg-surface-800/30">
                                 <span className="text-4xl mb-4">📂</span>
-                                <h3 className="text-lg font-medium text-surface-300 mb-1">Queue is empty</h3>
-                                <p className="text-surface-500 text-sm">Select multiple PDFs to begin sequential extraction.</p>
+                                <h3 className="text-lg font-medium text-surface-300 mb-1">{t('labs.ai.bulk.empty')}</h3>
+                                <p className="text-surface-500 text-sm">{t('labs.ai.bulk.empty_hint')}</p>
                             </div>
                         )}
                     </div>
@@ -746,7 +752,7 @@ export default function LabsPage() {
             {!selectedId && (
                 <div className="card text-center py-16">
                     <div className="text-4xl mb-3">🔬</div>
-                    <p className="text-surface-400">Select a participant above to view their longitudinal lab summary</p>
+                    <p className="text-surface-400">{t('labs.no_participant_selected')}</p>
                 </div>
             )}
 
@@ -765,34 +771,34 @@ export default function LabsPage() {
                         <p className="text-sm text-surface-300">
                             <span className="font-semibold text-white">{data.participant.studyId}</span>
                             {' — '}{data.participant.lastName}, {data.participant.firstName}
-                            {' · '}{data.visits.length} submitted visit{data.visits.length !== 1 ? 's' : ''}
+                            {' · '}{data.visits.length} {t('labs.visits_suffix')}
                         </p>
                     </div>
 
                     {/* Section Tabs */}
                     <div className="flex gap-1 bg-surface-800/60 p-1 rounded-xl w-fit">
-                        {([['kidney', '🫘 Kidney Trends'], ['other', '📊 Other Labs'], ['table', '📋 Pivot Table']] as const).map(([tab, label]) => (
+                        {([['kidney', t('labs.tab.kidney')], ['other', t('labs.tab.other')], ['table', t('labs.tab.pivot')]] as const).map(([tab, label]) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab
-                                    ? 'bg-primary-500/15 text-primary-400 shadow-sm'
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab 
+                                    ? 'bg-primary-500/15 text-primary-400 shadow-sm' 
                                     : 'text-surface-400 hover:text-surface-200 hover:bg-surface-700/50'
-                                    }`}
+                                }`}
                             >
                                 {label}
                             </button>
                         ))}
                     </div>
 
-                    {/* ═══ KIDNEY TRENDS ═══ */}
+                    {/* ═══════ KIDNEY TRENDS ═══════ */}
                     {activeTab === 'kidney' && (
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* ACR */}
+                                {/* ACR Chart */}
                                 <div className="card">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h2 className="section-title mb-0">ACR Trend</h2>
+                                        <h2 className="section-title mb-0">{t('labs.chart.acr')}</h2>
                                         <span className="text-xs text-surface-500">mg/g</span>
                                     </div>
                                     {data.computed.ACR.length > 0 ? (
@@ -802,7 +808,7 @@ export default function LabsPage() {
                                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                                     <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
                                                     <YAxis stroke="#94a3b8" fontSize={11} />
-                                                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} mg/g`, 'ACR']}
+                                                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} mg/g`, 'ACR']} 
                                                         labelFormatter={(_, payload) => payload?.[0]?.payload?.visitLabel || ''} />
                                                     <ReferenceLine y={30} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'A2', position: 'right', fill: '#f59e0b', fontSize: 10 }} />
                                                     <ReferenceLine y={300} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'A3', position: 'right', fill: '#ef4444', fontSize: 10 }} />
@@ -810,12 +816,13 @@ export default function LabsPage() {
                                                 </LineChart>
                                             </ResponsiveContainer>
                                         </div>
-                                    ) : <p className="text-surface-500 text-sm py-8 text-center">No ACR data available</p>}
+                                    ) : <p className="text-surface-500 text-sm py-8 text-center">{t('labs.empty.acr')}</p>}
                                 </div>
-                                {/* eGFR */}
+
+                                {/* eGFR Chart */}
                                 <div className="card">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h2 className="section-title mb-0">eGFR Trend</h2>
+                                        <h2 className="section-title mb-0">{t('labs.chart.egfr')}</h2>
                                         <span className="text-xs text-surface-500">mL/min/1.73m²</span>
                                     </div>
                                     {data.computed.eGFR.length > 0 ? (
@@ -825,7 +832,7 @@ export default function LabsPage() {
                                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                                     <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
                                                     <YAxis stroke="#94a3b8" fontSize={11} domain={[0, 'auto']} />
-                                                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} mL/min/1.73m²`, 'eGFR']}
+                                                    <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [`${v} mL/min/1.73m²`, 'eGFR']} 
                                                         labelFormatter={(_, payload) => payload?.[0]?.payload?.visitLabel || ''} />
                                                     <ReferenceLine y={90} stroke="#22c55e" strokeDasharray="3 3" label={{ value: 'G1', position: 'right', fill: '#22c55e', fontSize: 10 }} />
                                                     <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: 'G3a', position: 'right', fill: '#f59e0b', fontSize: 10 }} />
@@ -834,107 +841,141 @@ export default function LabsPage() {
                                                 </LineChart>
                                             </ResponsiveContainer>
                                         </div>
-                                    ) : <p className="text-surface-500 text-sm py-8 text-center">No eGFR data — enter serum creatinine to compute</p>}
+                                    ) : <p className="text-surface-500 text-sm py-8 text-center">{t('labs.empty.egfr')}</p>}
                                 </div>
                             </div>
+
+                            {/* Kidney Pivot Mini-table */}
                             <div className="card">
-                                <h2 className="section-title">Kidney-Relevant Labs</h2>
+                                <h2 className="section-title">{t('labs.section.kidney')}</h2>
                                 <PivotTable analytes={kidneyAnalytes} visits={data.visits} getCellValue={getCellValue} getCellUnit={getCellUnit} computed={data.computed} />
                             </div>
                         </div>
                     )}
 
-                    {/* ═══ OTHER LABS ═══ */}
+                    {/* ═══════ OTHER LAB TRENDS ═══════ */}
                     {activeTab === 'other' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="card lg:col-span-1">
-                                <h3 className="section-title">Select Analyte</h3>
-                                <input type="text" className="input mb-3" placeholder="Search analytes..." value={search} onChange={e => setSearch(e.target.value)} />
-                                <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
-                                    {numericOtherAnalytes.map(a => {
-                                        const change = getChangeFromBaseline(a.code);
-                                        return (
-                                            <button key={a.code} onClick={() => setSelectedAnalyte(a.code)}
-                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedAnalyte === a.code
-                                                    ? 'bg-primary-500/15 text-primary-400 border border-primary-500/30'
-                                                    : 'text-surface-300 hover:bg-surface-700/50 border border-transparent'}`}>
-                                                <span className="font-medium">{a.name}</span>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-xs text-surface-500">{a.code}</span>
-                                                    {a.unit && <span className="text-xs text-surface-500">· {a.unit}</span>}
-                                                    {change && (
-                                                        <span className={`text-xs font-medium ${change.abs >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                            {change.abs >= 0 ? '↑' : '↓'}{Math.abs(change.pct)}%
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                    {numericOtherAnalytes.length === 0 && <p className="text-surface-500 text-sm text-center py-4">No numeric analytes match</p>}
-                                </div>
-                            </div>
-                            <div className="card lg:col-span-2">
-                                {selectedAnalyte && selectedAnalyteObj ? (
-                                    <>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="section-title mb-0">{selectedAnalyteObj.name} Trend</h3>
-                                            <span className="text-xs text-surface-500">{selectedAnalyteObj.unit || ''}</span>
-                                        </div>
-                                        {(() => {
-                                            const c = getChangeFromBaseline(selectedAnalyte); return c ? (
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    <span className={`text-sm font-semibold ${c.abs >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{c.abs >= 0 ? '+' : ''}{c.abs} ({c.abs >= 0 ? '+' : ''}{c.pct}%)</span>
-                                                    <span className="text-xs text-surface-500">from baseline</span>
-                                                </div>) : null;
-                                        })()}
-                                        <div className="h-64">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <LineChart data={buildAnalyteChartData(selectedAnalyte)}>
-                                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                                                    <YAxis stroke="#94a3b8" fontSize={11} />
-                                                    <Tooltip contentStyle={TOOLTIP_STYLE}
-                                                        formatter={(v: number) => [`${v} ${selectedAnalyteObj.unit || ''}`, selectedAnalyteObj.name]}
-                                                        labelFormatter={(_, payload) => payload?.[0]?.payload?.visitLabel || ''} />
-                                                    <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2.5}
-                                                        dot={{ fill: '#8b5cf6', r: 5, strokeWidth: 2, stroke: '#1e293b' }} connectNulls />
-                                                </LineChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex items-center justify-center h-64 text-surface-500">
-                                        <p>Select an analyte from the list to view its trend</p>
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Analyte Selector */}
+                                <div className="card lg:col-span-1">
+                                    <h3 className="section-title">{t('labs.section.select_analyte')}</h3>
+                                    <input 
+                                        type="text" 
+                                        className="input mb-3"
+                                        placeholder={t('labs.analyte_search')}
+                                        value={search}
+                                        onChange={e => setSearch(e.target.value)}
+                                    />
+                                    <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
+                                        {numericOtherAnalytes.map(a => {
+                                            const change = getChangeFromBaseline(a.code);
+                                            return (
+                                                <button
+                                                    key={a.code}
+                                                    onClick={() => setSelectedAnalyte(a.code)}
+                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedAnalyte === a.code 
+                                                        ? 'bg-primary-500/15 text-primary-400 border border-primary-500/30' 
+                                                        : 'text-surface-300 hover:bg-surface-700/50 border border-transparent'
+                                                    }`}
+                                                >
+                                                    <span className="font-medium">{a.name}</span>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className="text-xs text-surface-500">{a.code}</span>
+                                                        {a.unit && <span className="text-xs text-surface-500">· {a.unit}</span>}
+                                                        {change && (
+                                                            <span className={`text-xs font-medium ${change.abs >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                                {change.abs >= 0 ? '↑' : '↓'}{Math.abs(change.pct)}%
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                        {numericOtherAnalytes.length === 0 && (
+                                            <p className="text-surface-500 text-sm text-center py-4">{t('labs.empty.analytes')}</p>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+
+                                {/* Chart */}
+                                <div className="card lg:col-span-2">
+                                    {selectedAnalyte && selectedAnalyteObj ? (
+                                        <>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="section-title mb-0">{selectedAnalyteObj.name} Trend</h3>
+                                                <span className="text-xs text-surface-500">{selectedAnalyteObj.unit || ''}</span>
+                                            </div>
+                                            {(() => {
+                                                const change = getChangeFromBaseline(selectedAnalyte);
+                                                return change ? (
+                                                    <div className="flex items-center gap-4 mb-4">
+                                                        <span className={`text-sm font-semibold ${change.abs >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                            {change.abs >= 0 ? '+' : ''}{change.abs} ({change.abs >= 0 ? '+' : ''}{change.pct}%)
+                                                        </span>
+                                                        <span className="text-xs text-surface-500">{t('labs.from_baseline')}</span>
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                            <div className="h-64">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <LineChart data={buildAnalyteChartData(selectedAnalyte)}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                                                        <YAxis stroke="#94a3b8" fontSize={11} />
+                                                        <Tooltip contentStyle={TOOLTIP_STYLE} 
+                                                            formatter={(v: number) => [`${v} ${selectedAnalyteObj.unit || ''}`, selectedAnalyteObj.name]}
+                                                            labelFormatter={(_, payload) => payload?.[0]?.payload?.visitLabel || ''} />
+                                                        <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2.5} 
+                                                            dot={{ fill: '#8b5cf6', r: 5, strokeWidth: 2, stroke: '#1e293b' }} connectNulls />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-64 text-surface-500">
+                                            <p>{t('labs.select_analyte_hint')}</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* ═══ PIVOT TABLE ═══ */}
+                    {/* ═══════ PIVOT TABLE ═══════ */}
                     {activeTab === 'table' && (
                         <div className="space-y-4">
+                            {/* Filters */}
                             <div className="card">
                                 <div className="flex flex-wrap gap-3">
                                     <div className="flex-1 min-w-[200px]">
-                                        <input type="text" className="input" placeholder="Search analytes by name or code..." value={search} onChange={e => setSearch(e.target.value)} />
+                                        <input 
+                                            type="text" 
+                                            className="input"
+                                            placeholder={t('labs.pivot.search')}
+                                            value={search}
+                                            onChange={e => setSearch(e.target.value)}
+                                        />
                                     </div>
                                     <select className="select max-w-xs" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
-                                        <option value="">All Categories</option>
+                                        <option value="">{t('labs.pivot.all_categories')}</option>
                                         {categories.map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
                             </div>
+
+                            {/* Kidney Relevant */}
                             {kidneyAnalytes.length > 0 && (
                                 <div className="card">
-                                    <h2 className="section-title">🫘 Kidney Relevant</h2>
+                                    <h2 className="section-title">{t('labs.pivot.kidney')}</h2>
                                     <PivotTable analytes={kidneyAnalytes} visits={data.visits} getCellValue={getCellValue} getCellUnit={getCellUnit} computed={data.computed} />
                                 </div>
                             )}
+
+                            {/* Other Labs */}
                             {otherAnalytes.length > 0 && (
                                 <div className="card">
-                                    <h2 className="section-title">🔬 Other Labs</h2>
+                                    <h2 className="section-title">{t('labs.pivot.other')}</h2>
                                     <PivotTable analytes={otherAnalytes} visits={data.visits} getCellValue={getCellValue} getCellUnit={getCellUnit} />
                                 </div>
                             )}
@@ -946,19 +987,25 @@ export default function LabsPage() {
     );
 }
 
-// ─── Pivot Table ───
-function PivotTable({ analytes, visits, getCellValue, getCellUnit, computed }: {
-    analytes: Analyte[]; visits: Visit[];
+// ─── Pivot Table Sub-component ───
+function PivotTable({
+    analytes, visits, getCellValue, getCellUnit, computed,
+}: {
+    analytes: Analyte[];
+    visits: Visit[];
     getCellValue: (code: string, visitId: string) => string | null;
     getCellUnit: (code: string, visitId: string) => string | null;
     computed?: { eGFR: ComputedPoint[]; ACR: ComputedPoint[] };
 }) {
+    const { t } = useLanguage();
     return (
         <div className="overflow-x-auto -mx-6 px-6">
             <table className="w-full min-w-[600px]">
                 <thead>
                     <tr className="border-b border-surface-700/50">
-                        <th className="text-left text-xs font-semibold text-surface-300 px-3 py-2 sticky left-0 bg-surface-800/90 backdrop-blur-sm z-10 min-w-[180px]">Analyte</th>
+                        <th className="text-left text-xs font-semibold text-surface-300 px-3 py-2 sticky left-0 bg-surface-800/90 backdrop-blur-sm z-10 min-w-[180px]">
+                            {t('labs.pivot.col.analyte')}
+                        </th>
                         {visits.map(v => (
                             <th key={v.visitId} className="text-center text-xs font-medium text-surface-400 px-3 py-2 min-w-[100px]">
                                 <div>{VISIT_SHORT[v.visitType] || v.visitType}</div>
@@ -968,30 +1015,41 @@ function PivotTable({ analytes, visits, getCellValue, getCellUnit, computed }: {
                     </tr>
                 </thead>
                 <tbody>
-                    {computed?.eGFR && computed.eGFR.length > 0 && (
+                    {/* Computed eGFR row */}
+                    {computed && computed.eGFR.length > 0 && (
                         <tr className="border-b border-surface-700/30 bg-primary-500/5">
                             <td className="px-3 py-2 sticky left-0 bg-primary-500/5 backdrop-blur-sm z-10">
                                 <span className="text-sm font-medium text-primary-400">eGFR (CKD-EPI)</span>
                                 <span className="text-xs text-surface-500 ml-1">mL/min/1.73m²</span>
                             </td>
                             {visits.map(v => {
-                                const pt = computed!.eGFR.find(e => e.visitId === v.visitId);
-                                return <td key={v.visitId} className="text-center px-3 py-2">{pt ? <span className="text-sm font-medium text-white">{pt.value}</span> : <span className="text-surface-600">—</span>}</td>;
+                                const pt = computed.eGFR.find(e => e.visitId === v.visitId);
+                                return (
+                                    <td key={v.visitId} className="text-center px-3 py-2">
+                                        {pt ? <span className="text-sm font-medium text-white">{pt.value}</span> : <span className="text-surface-600">—</span>}
+                                    </td>
+                                );
                             })}
                         </tr>
                     )}
-                    {computed?.ACR && computed.ACR.length > 0 && (
+                    {/* Computed ACR row */}
+                    {computed && computed.ACR.length > 0 && (
                         <tr className="border-b border-surface-700/30 bg-primary-500/5">
                             <td className="px-3 py-2 sticky left-0 bg-primary-500/5 backdrop-blur-sm z-10">
                                 <span className="text-sm font-medium text-primary-400">ACR (Computed)</span>
                                 <span className="text-xs text-surface-500 ml-1">mg/g</span>
                             </td>
                             {visits.map(v => {
-                                const pt = computed!.ACR.find(e => e.visitId === v.visitId);
-                                return <td key={v.visitId} className="text-center px-3 py-2">{pt ? <span className="text-sm font-medium text-white">{pt.value}</span> : <span className="text-surface-600">—</span>}</td>;
+                                const pt = computed.ACR.find(e => e.visitId === v.visitId);
+                                return (
+                                    <td key={v.visitId} className="text-center px-3 py-2">
+                                        {pt ? <span className="text-sm font-medium text-white">{pt.value}</span> : <span className="text-surface-600">—</span>}
+                                    </td>
+                                );
                             })}
                         </tr>
                     )}
+                    {/* Analyte rows */}
                     {analytes.map(a => (
                         <tr key={a.code} className="border-b border-surface-700/30 hover:bg-surface-700/20 transition-colors">
                             <td className="px-3 py-2 sticky left-0 bg-surface-800/90 backdrop-blur-sm z-10">
@@ -1006,9 +1064,11 @@ function PivotTable({ analytes, visits, getCellValue, getCellUnit, computed }: {
                                         {val != null ? (
                                             <div>
                                                 <span className="text-sm font-medium text-white">{val}</span>
-                                                {unit && unit !== a.unit && <span className="text-[10px] text-amber-400 ml-1" title="Unit differs">⚠</span>}
+                                                {unit && unit !== a.unit && <span className="text-[10px] text-amber-400 ml-1" title="Unit differs from default">⚠</span>}
                                             </div>
-                                        ) : <span className="text-surface-600">—</span>}
+                                        ) : (
+                                            <span className="text-surface-600">—</span>
+                                        )}
                                     </td>
                                 );
                             })}

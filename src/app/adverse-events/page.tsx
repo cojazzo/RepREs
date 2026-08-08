@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface AE {
     id: string;
@@ -22,6 +23,7 @@ interface AE {
 const VISIT_LABELS: Record<string, string> = { BASELINE: 'Baseline', MONTH_2: 'Month 2', MONTH_4: 'Month 4', MONTH_6: 'Month 6' };
 
 export default function AdverseEventsPage() {
+    const { t } = useLanguage();
     const [aes, setAes] = useState<AE[]>([]);
     const [loading, setLoading] = useState(true);
     const [saeOnly, setSaeOnly] = useState(false);
@@ -46,9 +48,9 @@ export default function AdverseEventsPage() {
         <div className="space-y-6 animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Adverse Events</h1>
+                    <h1 className="page-title">{t('ae.title')}</h1>
                     <p className="text-surface-400 mt-1 text-sm">
-                        {aes.length} total events • {saeCount} SAEs • {visitAeCount} from visit CRFs
+                        {aes.length} {t('ae.subtitle_total')} • {saeCount} {t('ae.subtitle_saes')} • {visitAeCount} {t('ae.subtitle_crf')}
                     </p>
                 </div>
             </div>
@@ -56,14 +58,14 @@ export default function AdverseEventsPage() {
             {/* Filters */}
             <div className="flex gap-4 items-center">
                 <select className="select max-w-xs" value={severityFilter} onChange={e => setSeverityFilter(e.target.value)}>
-                    <option value="">All Severities</option>
-                    <option value="MILD">Mild</option>
-                    <option value="MODERATE">Moderate</option>
-                    <option value="SEVERE">Severe</option>
+                    <option value="">{t('ae.filter.all')}</option>
+                    <option value="MILD">{t('ae.filter.mild')}</option>
+                    <option value="MODERATE">{t('ae.filter.moderate')}</option>
+                    <option value="SEVERE">{t('ae.filter.severe')}</option>
                 </select>
                 <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={saeOnly} onChange={e => setSaeOnly(e.target.checked)} className="w-4 h-4 rounded" />
-                    <span className="text-sm text-surface-300">SAEs Only</span>
+                    <span className="text-sm text-surface-300">{t('ae.filter.sae_only')}</span>
                 </label>
             </div>
 
@@ -72,8 +74,8 @@ export default function AdverseEventsPage() {
                 <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20 flex items-center gap-3">
                     <span className="text-xl">🚨</span>
                     <div>
-                        <p className="text-red-400 font-medium">Serious Adverse Events Detected</p>
-                        <p className="text-sm text-surface-400">{saeCount} SAE(s) require attention</p>
+                        <p className="text-red-400 font-medium">{t('ae.sae_banner.title')}</p>
+                        <p className="text-sm text-surface-400">{saeCount} {t('ae.sae_banner.desc')}</p>
                     </div>
                 </div>
             )}
@@ -85,21 +87,21 @@ export default function AdverseEventsPage() {
                         <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full" />
                     </div>
                 ) : aes.length === 0 ? (
-                    <div className="text-center py-12 text-surface-500">No adverse events found</div>
+                    <div className="text-center py-12 text-surface-500">{t('ae.empty')}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-surface-700/50 bg-surface-800/50">
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Study ID</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Description</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Visit</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Severity</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Relation</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Outcome</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">SAE</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Date</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Source</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.study_id')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.description')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.visit')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.severity')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.relation')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.outcome')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.sae')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.date')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('ae.col.source')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -129,7 +131,7 @@ export default function AdverseEventsPage() {
                                         <td className="px-6 py-4">
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full ${ae.source === 'visit'
                                                 ? 'bg-blue-500/15 text-blue-400' : 'bg-surface-500/15 text-surface-400'}`}>
-                                                {ae.source === 'visit' ? 'Visit CRF' : 'Manual'}
+                                                {ae.source === 'visit' ? t('ae.source.crf') : t('ae.source.manual')}
                                             </span>
                                         </td>
                                     </tr>

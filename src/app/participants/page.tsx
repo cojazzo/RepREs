@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface Participant {
     id: string;
@@ -25,6 +26,7 @@ const STATUS_BADGES: Record<string, string> = {
 };
 
 export default function ParticipantsPage() {
+    const { t } = useLanguage();
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -46,16 +48,16 @@ export default function ParticipantsPage() {
                 } else {
                     // API returned an error object
                     setParticipants([]);
-                    setError(d?.error || 'Failed to load participants.');
+                    setError(d?.error || t('participants.db_error'));
                 }
                 setLoading(false);
             })
             .catch((err) => {
                 setParticipants([]);
-                setError('Could not connect to server. Make sure the database is running.');
+                setError(t('participants.db_error'));
                 setLoading(false);
             });
-    }, [search, statusFilter]);
+    }, [search, statusFilter, t]);
 
     const age = (dob: string) => {
         const diff = Date.now() - new Date(dob).getTime();
@@ -66,11 +68,11 @@ export default function ParticipantsPage() {
         <div className="space-y-6 animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Participants</h1>
-                    <p className="text-surface-400 mt-1 text-sm">{participants.length} participants enrolled</p>
+                    <h1 className="page-title">{t('participants.title')}</h1>
+                    <p className="text-surface-400 mt-1 text-sm">{participants.length} {t('participants.enrolled_count')}</p>
                 </div>
                 <Link href="/participants/new" className="btn-primary">
-                    + Enroll Participant
+                    + {t('participants.enroll_btn')}
                 </Link>
             </div>
 
@@ -78,7 +80,7 @@ export default function ParticipantsPage() {
             <div className="flex gap-4">
                 <input
                     type="text"
-                    placeholder="Search by study ID, name..."
+                    placeholder={t('participants.search_placeholder')}
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     className="input max-w-sm"
@@ -88,12 +90,12 @@ export default function ParticipantsPage() {
                     onChange={e => setStatusFilter(e.target.value)}
                     className="select max-w-xs"
                 >
-                    <option value="">All Status</option>
-                    <option value="SCREENING">Screening</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="WITHDRAWN">Withdrawn</option>
-                    <option value="LOST_TO_FOLLOWUP">Lost to Follow-up</option>
+                    <option value="">{t('participants.filter.all')}</option>
+                    <option value="SCREENING">{t('participants.filter.screening')}</option>
+                    <option value="ACTIVE">{t('participants.filter.active')}</option>
+                    <option value="COMPLETED">{t('participants.filter.completed')}</option>
+                    <option value="WITHDRAWN">{t('participants.filter.withdrawn')}</option>
+                    <option value="LOST_TO_FOLLOWUP">{t('participants.filter.lost')}</option>
                 </select>
             </div>
 
@@ -114,11 +116,11 @@ export default function ParticipantsPage() {
                     <div className="flex flex-col items-center justify-center h-48 text-center gap-3">
                         <div className="text-4xl">👥</div>
                         <p className="text-surface-300 font-medium">
-                            {search || statusFilter ? 'No participants match your filters.' : 'No participants enrolled yet.'}
+                            {search || statusFilter ? t('participants.empty.no_match') : t('participants.empty.none')}
                         </p>
                         {!search && !statusFilter && (
                             <Link href="/participants/new" className="btn-primary text-sm">
-                                Enroll First Participant
+                                {t('participants.empty.enroll_first')}
                             </Link>
                         )}
                     </div>
@@ -127,14 +129,14 @@ export default function ParticipantsPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-surface-700/50 bg-surface-800/50">
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Study ID</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Name</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Sex</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Age</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Arm</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Status</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">Visits</th>
-                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">AEs</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.study_id')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.name')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.sex')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.age')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.arm')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.status')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.visits')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.aes')}</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import * as XLSX from 'xlsx';
 
@@ -35,6 +36,7 @@ const TOOLTIP_STYLE = { backgroundColor: '#1e293b', border: '1px solid #334155',
 export default function ParticipantLabsSummary() {
     const params = useParams();
     const router = useRouter();
+    const { t } = useLanguage();
     const participantId = params.id as string;
 
     const [data, setData] = useState<LabsSummary | null>(null);
@@ -166,7 +168,7 @@ export default function ParticipantLabsSummary() {
 
         if (format === 'csv') {
             const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = `labs_${data.participant.studyId}.csv`; a.click();
@@ -183,7 +185,7 @@ export default function ParticipantLabsSummary() {
     if (loading) {
         return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full" /></div>;
     }
-    if (!data) return <div className="text-surface-400">Failed to load labs summary.</div>;
+    if (!data) return <div className="text-surface-400">{t('labs.error')}</div>;
 
     const selectedAnalyteObj = data.analytes.find(a => a.code === selectedAnalyte);
 
@@ -192,24 +194,24 @@ export default function ParticipantLabsSummary() {
             {/* Header */}
             <div className="page-header">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => router.push(`/participants/${participantId}`)} className="btn-ghost text-sm">← Back</button>
+                    <button onClick={() => router.push(`/participants/${participantId}`)} className="btn-ghost text-sm">{t('labs.back')}</button>
                     <div>
-                        <h1 className="page-title">Labs Summary</h1>
+                        <h1 className="page-title">{t('labs.summary_title')}</h1>
                         <p className="text-surface-400 mt-1 text-sm">
                             {data.participant.studyId} — {data.participant.lastName}, {data.participant.firstName}
-                            {' · '}{data.visits.length} visit{data.visits.length !== 1 ? 's' : ''}
+                            {' · '}{data.visits.length} {t('labs.visits_suffix')}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => exportData('csv')} className="btn-secondary text-sm">📥 CSV</button>
-                    <button onClick={() => exportData('xlsx')} className="btn-secondary text-sm">📥 Excel</button>
+                    <button onClick={() => exportData('csv')} className="btn-secondary text-sm">📥 {t('action.export_csv')}</button>
+                    <button onClick={() => exportData('xlsx')} className="btn-secondary text-sm">📥 {t('action.export_excel')}</button>
                 </div>
             </div>
 
             {/* Section Tabs */}
             <div className="flex gap-1 bg-surface-800/60 p-1 rounded-xl w-fit">
-                {([['kidney', '🫘 Kidney Trends'], ['other', '📊 Other Labs'], ['table', '📋 Pivot Table']] as const).map(([tab, label]) => (
+                {([['kidney', t('labs.tab.kidney')], ['other', t('labs.tab.other')], ['table', t('labs.tab.pivot')]] as const).map(([tab, label]) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -230,7 +232,7 @@ export default function ParticipantLabsSummary() {
                         {/* ACR Chart */}
                         <div className="card">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="section-title mb-0">ACR Trend</h2>
+                                <h2 className="section-title mb-0">{t('labs.chart.acr')}</h2>
                                 <span className="text-xs text-surface-500">mg/g</span>
                             </div>
                             {data.computed.ACR.length > 0 ? (
@@ -248,13 +250,13 @@ export default function ParticipantLabsSummary() {
                                         </LineChart>
                                     </ResponsiveContainer>
                                 </div>
-                            ) : <p className="text-surface-500 text-sm py-8 text-center">No ACR data available</p>}
+                            ) : <p className="text-surface-500 text-sm py-8 text-center">{t('labs.empty.acr')}</p>}
                         </div>
 
                         {/* eGFR Chart */}
                         <div className="card">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="section-title mb-0">eGFR Trend</h2>
+                                <h2 className="section-title mb-0">{t('labs.chart.egfr')}</h2>
                                 <span className="text-xs text-surface-500">mL/min/1.73m²</span>
                             </div>
                             {data.computed.eGFR.length > 0 ? (
@@ -273,13 +275,13 @@ export default function ParticipantLabsSummary() {
                                         </LineChart>
                                     </ResponsiveContainer>
                                 </div>
-                            ) : <p className="text-surface-500 text-sm py-8 text-center">No eGFR data available — enter serum creatinine to compute</p>}
+                            ) : <p className="text-surface-500 text-sm py-8 text-center">{t('labs.empty.egfr')}</p>}
                         </div>
                     </div>
 
                     {/* Kidney Pivot Mini-table */}
                     <div className="card">
-                        <h2 className="section-title">Kidney-Relevant Labs</h2>
+                        <h2 className="section-title">{t('labs.section.kidney')}</h2>
                         <PivotTable analytes={kidneyAnalytes} visits={data.visits} getCellValue={getCellValue} getCellUnit={getCellUnit} computed={data.computed} />
                     </div>
                 </div>
@@ -291,11 +293,11 @@ export default function ParticipantLabsSummary() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Analyte Selector */}
                         <div className="card lg:col-span-1">
-                            <h3 className="section-title">Select Analyte</h3>
+                            <h3 className="section-title">{t('labs.section.select_analyte')}</h3>
                             <input
                                 type="text"
                                 className="input mb-3"
-                                placeholder="Search analytes..."
+                                placeholder={t('labs.analyte_search')}
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                             />
@@ -325,7 +327,7 @@ export default function ParticipantLabsSummary() {
                                     );
                                 })}
                                 {numericOtherAnalytes.length === 0 && (
-                                    <p className="text-surface-500 text-sm text-center py-4">No numeric analytes match</p>
+                                    <p className="text-surface-500 text-sm text-center py-4">{t('labs.empty.analytes')}</p>
                                 )}
                             </div>
                         </div>
@@ -345,7 +347,7 @@ export default function ParticipantLabsSummary() {
                                                 <span className={`text-sm font-semibold ${change.abs >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                                     {change.abs >= 0 ? '+' : ''}{change.abs} ({change.abs >= 0 ? '+' : ''}{change.pct}%)
                                                 </span>
-                                                <span className="text-xs text-surface-500">from baseline</span>
+                                                <span className="text-xs text-surface-500">{t('labs.from_baseline')}</span>
                                             </div>
                                         ) : null;
                                     })()}
@@ -366,7 +368,7 @@ export default function ParticipantLabsSummary() {
                                 </>
                             ) : (
                                 <div className="flex items-center justify-center h-64 text-surface-500">
-                                    <p>Select an analyte from the list to view its trend</p>
+                                    <p>{t('labs.select_analyte_hint')}</p>
                                 </div>
                             )}
                         </div>
@@ -384,13 +386,13 @@ export default function ParticipantLabsSummary() {
                                 <input
                                     type="text"
                                     className="input"
-                                    placeholder="Search analytes by name or code..."
+                                    placeholder={t('labs.pivot.search')}
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                 />
                             </div>
                             <select className="select max-w-xs" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
-                                <option value="">All Categories</option>
+                                <option value="">{t('labs.pivot.all_categories')}</option>
                                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                         </div>
@@ -399,7 +401,7 @@ export default function ParticipantLabsSummary() {
                     {/* Kidney Relevant */}
                     {kidneyAnalytes.length > 0 && (
                         <div className="card">
-                            <h2 className="section-title">🫘 Kidney Relevant</h2>
+                            <h2 className="section-title">{t('labs.pivot.kidney')}</h2>
                             <PivotTable analytes={kidneyAnalytes} visits={data.visits} getCellValue={getCellValue} getCellUnit={getCellUnit} computed={data.computed} />
                         </div>
                     )}
@@ -407,7 +409,7 @@ export default function ParticipantLabsSummary() {
                     {/* Other Labs */}
                     {otherAnalytes.length > 0 && (
                         <div className="card">
-                            <h2 className="section-title">🔬 Other Labs</h2>
+                            <h2 className="section-title">{t('labs.pivot.other')}</h2>
                             <PivotTable analytes={otherAnalytes} visits={data.visits} getCellValue={getCellValue} getCellUnit={getCellUnit} />
                         </div>
                     )}
@@ -427,13 +429,14 @@ function PivotTable({
     getCellUnit: (code: string, visitId: string) => string | null;
     computed?: { eGFR: ComputedPoint[]; ACR: ComputedPoint[] };
 }) {
+    const { t } = useLanguage();
     return (
         <div className="overflow-x-auto -mx-6 px-6">
             <table className="w-full min-w-[600px]">
                 <thead>
                     <tr className="border-b border-surface-700/50">
                         <th className="text-left text-xs font-semibold text-surface-300 px-3 py-2 sticky left-0 bg-surface-800/90 backdrop-blur-sm z-10 min-w-[180px]">
-                            Analyte
+                            {t('labs.pivot.col.analyte')}
                         </th>
                         {visits.map(v => (
                             <th key={v.visitId} className="text-center text-xs font-medium text-surface-400 px-3 py-2 min-w-[100px]">

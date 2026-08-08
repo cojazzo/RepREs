@@ -4,24 +4,27 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { TranslationKey } from '@/lib/i18n/translations';
 import { Role } from '@prisma/client';
 
 const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: null },
-    { name: 'Participants', href: '/participants', icon: '👥', roles: null },
-    { name: 'Adverse Events', href: '/adverse-events', icon: '⚠️', roles: null },
-    { name: 'Labs', href: '/labs', icon: '🔬', roles: null },
-    { name: 'Pharmacy', href: '/pharmacy', icon: '💊', roles: [Role.ADMIN, Role.PHARMACY] as Role[] },
-    { name: 'Data Queries', href: '/queries', icon: '❓', roles: [Role.ADMIN, Role.MONITOR, Role.DATA_ENTRY, Role.INVESTIGATOR] as Role[] },
-    { name: 'Audit Log', href: '/audit-log', icon: '📋', roles: [Role.ADMIN, Role.MONITOR] as Role[] },
-    { name: 'Reports', href: '/reports', icon: '📄', roles: null },
-    { name: 'Users', href: '/admin/users', icon: '⚙️', roles: [Role.ADMIN] as Role[] },
+    { translationKey: 'nav.dashboard' as TranslationKey, href: '/dashboard', icon: '📊', roles: null },
+    { translationKey: 'nav.participants' as TranslationKey, href: '/participants', icon: '👥', roles: null },
+    { translationKey: 'nav.adverse_events' as TranslationKey, href: '/adverse-events', icon: '⚠️', roles: null },
+    { translationKey: 'nav.labs' as TranslationKey, href: '/labs', icon: '🔬', roles: null },
+    { translationKey: 'nav.pharmacy' as TranslationKey, href: '/pharmacy', icon: '💊', roles: [Role.ADMIN, Role.PHARMACY] as Role[] },
+    { translationKey: 'nav.data_queries' as TranslationKey, href: '/queries', icon: '❓', roles: [Role.ADMIN, Role.MONITOR, Role.DATA_ENTRY, Role.INVESTIGATOR] as Role[] },
+    { translationKey: 'nav.audit_log' as TranslationKey, href: '/audit-log', icon: '📋', roles: [Role.ADMIN, Role.MONITOR] as Role[] },
+    { translationKey: 'nav.reports' as TranslationKey, href: '/reports', icon: '📄', roles: null },
+    { translationKey: 'nav.users' as TranslationKey, href: '/admin/users', icon: '⚙️', roles: [Role.ADMIN] as Role[] },
 ];
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { data: session } = useSession();
     const userRole = session?.user?.role;
+    const { language, setLanguage, t } = useLanguage();
 
     const filteredNav = navigation.filter(item => {
         if (!item.roles) return true;
@@ -38,7 +41,7 @@ export default function Sidebar() {
                     </div>
                     <div>
                         <h1 className="text-lg font-bold text-white tracking-tight">RepREs</h1>
-                        <p className="text-[10px] text-surface-400 uppercase tracking-wider">Clinical Trial</p>
+                        <p className="text-[10px] text-surface-400 uppercase tracking-wider">{t('sidebar.clinical_trial')}</p>
                     </div>
                 </Link>
             </div>
@@ -49,7 +52,7 @@ export default function Sidebar() {
                     {filteredNav.map((item) => {
                         const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                         return (
-                            <li key={item.name}>
+                            <li key={item.translationKey}>
                                 <Link
                                     href={item.href}
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group
@@ -61,7 +64,7 @@ export default function Sidebar() {
                                     <span className={`text-lg transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
                                         {item.icon}
                                     </span>
-                                    {item.name}
+                                    {t(item.translationKey)}
                                     {isActive && (
                                         <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse-subtle" />
                                     )}
@@ -83,7 +86,7 @@ export default function Sidebar() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-surface-200 truncate">{session.user.name}</p>
-                            <p className="text-xs text-surface-500 truncate">{session.user.role.replace('_', ' ')}</p>
+                            <p className="text-xs text-surface-500 truncate">{t(`role.${session.user.role}` as any)}</p>
                         </div>
                     </div>
                     <button
@@ -91,10 +94,26 @@ export default function Sidebar() {
                             await signOut({ redirect: false });
                             window.location.href = '/login';
                         }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 mb-2"
                     >
-                        ← Sign Out
+                        ← {t('sidebar.sign_out')}
                     </button>
+                    
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-surface-700/50 justify-center">
+                        <button 
+                            onClick={() => setLanguage('en')}
+                            className={`px-2 py-1 text-xs rounded-md transition-colors ${language === 'en' ? 'bg-primary-500/20 text-primary-400 font-medium' : 'text-surface-500 hover:text-surface-300'}`}
+                        >
+                            EN
+                        </button>
+                        <span className="text-surface-700 text-xs">|</span>
+                        <button 
+                            onClick={() => setLanguage('es')}
+                            className={`px-2 py-1 text-xs rounded-md transition-colors ${language === 'es' ? 'bg-primary-500/20 text-primary-400 font-medium' : 'text-surface-500 hover:text-surface-300'}`}
+                        >
+                            ES
+                        </button>
+                    </div>
                 </div>
             )}
         </aside>

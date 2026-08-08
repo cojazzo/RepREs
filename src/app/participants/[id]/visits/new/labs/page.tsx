@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWizard } from '../layout';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface Analyte {
     id: string;
@@ -23,6 +24,7 @@ const CATEGORY_ORDER = [
 
 export default function LabsPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const { visitId, participantId, participant, visitData } = useWizard();
 
     const [analytes, setAnalytes] = useState<Analyte[]>([]);
@@ -192,17 +194,17 @@ export default function LabsPage() {
             {/* Header */}
             <div className="card">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="section-title mb-0">Step 2 — Laboratory Results</h2>
+                    <h2 className="section-title mb-0">{t('visit_labs.title')}</h2>
                     <div className="flex items-center gap-3">
-                        <span className="text-xs text-surface-400">{filledCount}/{analytes.length} filled</span>
-                        {saved && <span className="badge-success">✓ Saved</span>}
+                        <span className="text-xs text-surface-400">{filledCount}/{analytes.length} {t('visit_labs.filled')}</span>
+                        {saved && <span className="badge-success">{t('common.saved')}</span>}
                     </div>
                 </div>
                 <div className="relative">
                     <input
                         type="text"
                         className="input pl-10"
-                        placeholder="Search analytes by name or code..."
+                        placeholder={t('visit_labs.search_placeholder')}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
@@ -212,17 +214,17 @@ export default function LabsPage() {
                 {/* Auto-calculated values */}
                 {(values['ACR'] || values['EGFR']) && (
                     <div className="mt-4 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
-                        <p className="text-xs font-semibold text-primary-400 mb-2 uppercase tracking-wider">Auto-Calculated</p>
+                        <p className="text-xs font-semibold text-primary-400 mb-2 uppercase tracking-wider">{t('visit_labs.auto_calculated')}</p>
                         <div className="flex gap-6">
                             {values['ACR'] && (
                                 <div>
-                                    <span className="text-xs text-surface-400">ACR:</span>
+                                    <span className="text-xs text-surface-400">{t('visit_labs.acr_label')}</span>
                                     <span className="ml-2 text-sm text-white font-medium">{values['ACR']} mg/g</span>
                                 </div>
                             )}
                             {values['EGFR'] && (
                                 <div>
-                                    <span className="text-xs text-surface-400">eGFR (CKD-EPI):</span>
+                                    <span className="text-xs text-surface-400">{t('visit_labs.egfr_label')}</span>
                                     <span className="ml-2 text-sm text-white font-medium">{values['EGFR']} mL/min/1.73m²</span>
                                 </div>
                             )}
@@ -296,7 +298,7 @@ export default function LabsPage() {
                                                 value={values[analyte.code] ?? ''}
                                                 onChange={e => handleValueChange(analyte.code, e.target.value)}
                                             >
-                                                <option value="">— Select —</option>
+                                                <option value="">{t('common.select')}</option>
                                                 {parseCoding(analyte.coding).map(opt => (
                                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                                                 ))}
@@ -314,14 +316,14 @@ export default function LabsPage() {
             <div className="card">
                 <div className="flex items-center justify-between">
                     <button onClick={handleBack} className="btn-ghost">
-                        ← Back: Clinical
+                        {t('visit_labs.btn.back')}
                     </button>
                     <div className="flex items-center gap-3">
                         <button onClick={saveDraft} disabled={saving || !visitId} className="btn-secondary">
-                            {saving ? 'Saving...' : '💾 Save Draft'}
+                            {saving ? 'Saving...' : t('visit_labs.btn.save')}
                         </button>
                         <button onClick={handleNext} disabled={!visitId} className="btn-primary">
-                            Next: Adverse Events →
+                            {t('visit_labs.btn.next')}
                         </button>
                     </div>
                 </div>

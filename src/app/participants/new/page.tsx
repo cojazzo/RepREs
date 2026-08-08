@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function EnrollParticipantPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [form, setForm] = useState({
@@ -58,60 +60,60 @@ export default function EnrollParticipantPage() {
         <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Enroll New Participant</h1>
-                    <p className="text-surface-400 mt-1 text-sm">Complete screening checklist and demographics</p>
+                    <h1 className="page-title">{t('enroll.title')}</h1>
+                    <p className="text-surface-400 mt-1 text-sm">{t('enroll.subtitle')}</p>
                 </div>
             </div>
 
             {/* Demographics */}
             <div className="card">
-                <h2 className="section-title">Demographics</h2>
+                <h2 className="section-title">{t('enroll.section.demographics')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="label">First Name *</label>
+                        <label className="label">{t('enroll.field.first_name')}</label>
                         <input className="input" value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))} required />
                     </div>
                     <div>
-                        <label className="label">Last Name *</label>
+                        <label className="label">{t('enroll.field.last_name')}</label>
                         <input className="input" value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))} required />
                     </div>
                     <div>
-                        <label className="label">Sex *</label>
+                        <label className="label">{t('enroll.field.sex')}</label>
                         <select className="select" value={form.sex} onChange={e => setForm(f => ({ ...f, sex: e.target.value }))}>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
+                            <option value="Male">{t('enroll.sex.male')}</option>
+                            <option value="Female">{t('enroll.sex.female')}</option>
                         </select>
                     </div>
                     <div>
-                        <label className="label">Date of Birth *</label>
+                        <label className="label">{t('enroll.field.dob')}</label>
                         <input type="date" className="input" value={form.birthDate} onChange={e => setForm(f => ({ ...f, birthDate: e.target.value }))} required />
                     </div>
                     <div>
-                        <label className="label">CURP</label>
-                        <input className="input" placeholder="18-character CURP" maxLength={18} value={form.curp} onChange={e => setForm(f => ({ ...f, curp: e.target.value.toUpperCase() }))} />
+                        <label className="label">{t('enroll.field.curp')}</label>
+                        <input className="input" placeholder={t('enroll.placeholder.curp')} maxLength={18} value={form.curp} onChange={e => setForm(f => ({ ...f, curp: e.target.value.toUpperCase() }))} />
                     </div>
                     <div>
-                        <label className="label">CHMH ID</label>
-                        <input className="input" placeholder="Hospital ID number" value={form.chmhId} onChange={e => setForm(f => ({ ...f, chmhId: e.target.value }))} />
+                        <label className="label">{t('enroll.field.chmh_id')}</label>
+                        <input className="input" placeholder={t('enroll.placeholder.chmh')} value={form.chmhId} onChange={e => setForm(f => ({ ...f, chmhId: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">Telephone Number</label>
-                        <input type="tel" className="input" placeholder="e.g. +52 55 1234 5678" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                        <label className="label">{t('enroll.field.phone')}</label>
+                        <input type="tel" className="input" placeholder={t('enroll.placeholder.phone')} value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                     </div>
                 </div>
             </div>
 
             {/* Screening Checklist */}
             <div className="card">
-                <h2 className="section-title">Screening Checklist</h2>
+                <h2 className="section-title">{t('enroll.section.screening')}</h2>
 
                 <div className="mb-6">
-                    <h3 className="text-sm font-medium text-surface-300 mb-3 uppercase tracking-wider">Inclusion Criteria (all must be checked)</h3>
+                    <h3 className="text-sm font-medium text-surface-300 mb-3 uppercase tracking-wider">{t('enroll.inclusion.title')}</h3>
                     <div className="space-y-3">
                         {[
-                            { key: 'acrOver30', label: 'ACR > 30 mg/g confirmed on 3 separate occasions' },
-                            { key: 'informedConsent', label: 'Informed consent obtained and documented' },
-                            { key: 'willingToComply', label: 'Willing and able to comply with study procedures' },
+                            { key: 'acrOver30', label: t('enroll.inclusion.acr') },
+                            { key: 'informedConsent', label: t('enroll.inclusion.consent') },
+                            { key: 'willingToComply', label: t('enroll.inclusion.comply') },
                         ].map(({ key, label }) => (
                             <div key={key}>
                                 <label className="flex items-center gap-3 p-3 rounded-lg bg-surface-700/30 hover:bg-surface-700/50 transition-colors cursor-pointer">
@@ -122,28 +124,28 @@ export default function EnrollParticipantPage() {
                                         className="w-4 h-4 rounded border-surface-500 text-primary-500 focus:ring-primary-500/50"
                                     />
                                     <span className="text-sm text-surface-200">{label}</span>
-                                    {(screening as any)[key] && <span className="ml-auto text-emerald-400 text-xs">✓ Met</span>}
+                                    {(screening as any)[key] && <span className="ml-auto text-emerald-400 text-xs">{t('enroll.badge.met')}</span>}
                                 </label>
                                 {key === 'acrOver30' && (screening as any)[key] && (
                                     <div className="ml-8 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2 mb-2">
                                         <input
                                             type="number"
                                             className="input text-sm"
-                                            placeholder="ACR test 1 (mg/g)"
+                                            placeholder={t('enroll.inclusion.acr1')}
                                             value={screening.acrValue1}
                                             onChange={e => setScreening(s => ({ ...s, acrValue1: e.target.value }))}
                                         />
                                         <input
                                             type="number"
                                             className="input text-sm"
-                                            placeholder="ACR test 2 (mg/g)"
+                                            placeholder={t('enroll.inclusion.acr2')}
                                             value={screening.acrValue2}
                                             onChange={e => setScreening(s => ({ ...s, acrValue2: e.target.value }))}
                                         />
                                         <input
                                             type="number"
                                             className="input text-sm"
-                                            placeholder="ACR test 3 (mg/g)"
+                                            placeholder={t('enroll.inclusion.acr3')}
                                             value={screening.acrValue3}
                                             onChange={e => setScreening(s => ({ ...s, acrValue3: e.target.value }))}
                                         />
@@ -155,16 +157,16 @@ export default function EnrollParticipantPage() {
                 </div>
 
                 <div>
-                    <h3 className="text-sm font-medium text-surface-300 mb-3 uppercase tracking-wider">Exclusion Criteria (none should be checked)</h3>
+                    <h3 className="text-sm font-medium text-surface-300 mb-3 uppercase tracking-wider">{t('enroll.exclusion.title')}</h3>
                     <div className="space-y-3">
                         {[
-                            { key: 'renalImpairment', label: 'eGFR < 60 mL/min/1.73m²' },
-                            { key: 'diabetesMellitus', label: 'Diagnosis of Diabetes Mellitus' },
-                            { key: 'knownGlomerulopathy', label: 'Known glomerulopathy' },
-                            { key: 'pregnancy', label: 'Pregnancy or planning to become pregnant' },
-                            { key: 'knownAllergy', label: 'Known allergy to study drug or excipients' },
-                            { key: 'activeInfection', label: 'Active or recurrent genital/urinary infection' },
-                            { key: 'highRiskCondition', label: 'Another medical condition the researcher considers high risk' },
+                            { key: 'renalImpairment', label: t('enroll.exclusion.egfr') },
+                            { key: 'diabetesMellitus', label: t('enroll.exclusion.diabetes') },
+                            { key: 'knownGlomerulopathy', label: t('enroll.exclusion.glomerulopathy') },
+                            { key: 'pregnancy', label: t('enroll.exclusion.pregnancy') },
+                            { key: 'knownAllergy', label: t('enroll.exclusion.allergy') },
+                            { key: 'activeInfection', label: t('enroll.exclusion.infection') },
+                            { key: 'highRiskCondition', label: t('enroll.exclusion.high_risk') },
                         ].map(({ key, label }) => (
                             <label key={key} className="flex items-center gap-3 p-3 rounded-lg bg-surface-700/30 hover:bg-surface-700/50 transition-colors cursor-pointer">
                                 <input
@@ -174,7 +176,7 @@ export default function EnrollParticipantPage() {
                                     className="w-4 h-4 rounded border-surface-500 text-red-500 focus:ring-red-500/50"
                                 />
                                 <span className="text-sm text-surface-200">{label}</span>
-                                {(screening as any)[key] && <span className="ml-auto text-red-400 text-xs">⚠ Excluded</span>}
+                                {(screening as any)[key] && <span className="ml-auto text-red-400 text-xs">{t('enroll.badge.excluded')}</span>}
                             </label>
                         ))}
                     </div>
@@ -185,7 +187,7 @@ export default function EnrollParticipantPage() {
                     <div className="flex items-center gap-2">
                         <span className={`text-lg ${eligible ? 'text-emerald-400' : 'text-red-400'}`}>{eligible ? '✅' : '❌'}</span>
                         <span className={`font-medium ${eligible ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {eligible ? 'Participant is ELIGIBLE for enrollment' : 'Participant is NOT ELIGIBLE'}
+                            {eligible ? t('enroll.eligible') : t('enroll.not_eligible')}
                         </span>
                     </div>
                 </div>
@@ -197,20 +199,20 @@ export default function EnrollParticipantPage() {
 
             {/* Actions */}
             <div className="flex gap-3 justify-end">
-                <button onClick={() => router.back()} className="btn-secondary">Cancel</button>
+                <button onClick={() => router.back()} className="btn-secondary">{t('common.cancel')}</button>
                 <button
                     onClick={() => handleSubmit(false)}
                     disabled={loading || !form.firstName || !form.lastName || !form.birthDate}
                     className="btn-secondary"
                 >
-                    Save as Screening
+                    {t('enroll.btn.save_screening')}
                 </button>
                 <button
                     onClick={() => handleSubmit(true)}
                     disabled={loading || !eligible || !form.firstName || !form.lastName || !form.birthDate}
                     className="btn-primary"
                 >
-                    {loading ? 'Processing...' : 'Enroll & Randomize'}
+                    {loading ? t('enroll.btn.processing') : t('enroll.btn.enroll')}
                 </button>
             </div>
         </div>

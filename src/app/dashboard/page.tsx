@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface DashboardData {
     recruitment: {
@@ -33,6 +34,8 @@ export default function DashboardPage() {
     const isAdmin = session?.user?.role === 'ADMIN';
     const isPharma = session?.user?.role === 'PHARMACY';
     const canViewTreatment = isAdmin || isPharma;
+    
+    const { t } = useLanguage();
 
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -52,64 +55,64 @@ export default function DashboardPage() {
         );
     }
 
-    if (!data) return <div className="text-surface-400">Failed to load dashboard data.</div>;
+    if (!data) return <div className="text-surface-400">{t('dashboard.error')}</div>;
 
     const enrolledTotal = data.recruitment.armA + data.recruitment.armB;
     const recruitmentPercent = Math.round((enrolledTotal / (data.recruitment.targetPerArm * 2)) * 100);
 
     const statusData = [
-        { name: 'Active', value: data.recruitment.active, color: '#22c55e' },
-        { name: 'Completed', value: data.recruitment.completed, color: '#3b82f6' },
-        { name: 'Withdrawn', value: data.recruitment.withdrawn, color: '#f59e0b' },
-        { name: 'Lost', value: data.recruitment.lost, color: '#ef4444' },
-        { name: 'Screening', value: data.recruitment.screening, color: '#8b5cf6' },
+        { name: t('dashboard.status.active'), value: data.recruitment.active, color: '#22c55e' },
+        { name: t('dashboard.status.completed'), value: data.recruitment.completed, color: '#3b82f6' },
+        { name: t('dashboard.status.withdrawn'), value: data.recruitment.withdrawn, color: '#f59e0b' },
+        { name: t('dashboard.status.lost'), value: data.recruitment.lost, color: '#ef4444' },
+        { name: t('dashboard.status.screening'), value: data.recruitment.screening, color: '#8b5cf6' },
     ].filter(d => d.value > 0);
 
     const visitData = data.visits.byType.map(v => ({
         name: v.visitType.replace('_', ' '),
-        Completed: v.completed,
-        Pending: v.total - v.completed,
+        completed: v.completed,
+        pending: v.total - v.completed,
         Rate: v.rate,
     }));
 
     const armComparison = [
-        { name: 'Group A', AEs: data.adverseEvents.byArm.A, Enrolled: data.recruitment.armA },
-        { name: 'Group B', AEs: data.adverseEvents.byArm.B, Enrolled: data.recruitment.armB },
+        { name: t('dashboard.group_a'), AEs: data.adverseEvents.byArm.A, Enrolled: data.recruitment.armA },
+        { name: t('dashboard.group_b'), AEs: data.adverseEvents.byArm.B, Enrolled: data.recruitment.armB },
     ];
 
     return (
         <div className="space-y-6 animate-fade-in">
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Dashboard</h1>
-                    <p className="text-surface-400 mt-1 text-sm">Real-time trial overview • Dapagliflozin 10mg vs Placebo</p>
+                    <h1 className="page-title">{t('dashboard.title')}</h1>
+                    <p className="text-surface-400 mt-1 text-sm">{t('dashboard.subtitle')}</p>
                 </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard label="Total Enrolled" value={enrolledTotal} sub={`${recruitmentPercent}% of target`}
+                <StatCard label={t('dashboard.stat.total_enrolled')} value={enrolledTotal} sub={`${recruitmentPercent}% ${t('dashboard.stat.of_target')}`}
                     gradient="from-primary-600 to-primary-400" icon="👥" />
-                <StatCard label="Visit Completion" value={`${data.visits.completionRate}%`}
-                    sub={`${data.visits.completed}/${data.visits.total} visits`}
+                <StatCard label={t('dashboard.stat.visit_completion')} value={`${data.visits.completionRate}%`}
+                    sub={`${data.visits.completed}/${data.visits.total} ${t('dashboard.stat.visits')}`}
                     gradient="from-emerald-600 to-emerald-400" icon="✅" />
-                <StatCard label="Adverse Events" value={data.adverseEvents.total}
-                    sub={`${data.adverseEvents.saes} SAE${data.adverseEvents.saes !== 1 ? 's' : ''}`}
+                <StatCard label={t('dashboard.stat.adverse_events')} value={data.adverseEvents.total}
+                    sub={`${data.adverseEvents.saes} ${t('dashboard.stat.saes')}`}
                     gradient="from-amber-600 to-amber-400" icon="⚠️"
                     alert={data.adverseEvents.saes > 0} />
-                <StatCard label="Missing Data" value={data.visits.missing}
-                    sub="Incomplete visits"
+                <StatCard label={t('dashboard.stat.missing_data')} value={data.visits.missing}
+                    sub={t('dashboard.stat.incomplete_visits')}
                     gradient="from-red-600 to-red-400" icon="📋" />
             </div>
 
             {/* Recruitment Progress (Blinded) */}
             {canViewTreatment && (
                 <div className="card">
-                    <h2 className="section-title">Recruitment Progress (By Arm)</h2>
+                    <h2 className="section-title">{t('dashboard.section.recruitment')}</h2>
                     <div className="grid grid-cols-2 gap-6">
                         <div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-surface-400">Group A</span>
+                                <span className="text-surface-400">{t('dashboard.group_a')}</span>
                                 <span className="text-primary-400 font-medium">{data.recruitment.armA} / {data.recruitment.targetPerArm}</span>
                             </div>
                             <div className="h-3 bg-surface-700 rounded-full overflow-hidden">
@@ -119,7 +122,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-surface-400">Group B</span>
+                                <span className="text-surface-400">{t('dashboard.group_b')}</span>
                                 <span className="text-accent-400 font-medium">{data.recruitment.armB} / {data.recruitment.targetPerArm}</span>
                             </div>
                             <div className="h-3 bg-surface-700 rounded-full overflow-hidden">
@@ -135,7 +138,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Participant Status */}
                 <div className="card">
-                    <h2 className="section-title">Participant Status</h2>
+                    <h2 className="section-title">{t('dashboard.section.status')}</h2>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -154,7 +157,7 @@ export default function DashboardPage() {
 
                 {/* Visit Completion */}
                 <div className="card">
-                    <h2 className="section-title">Visit Completion by Timepoint</h2>
+                    <h2 className="section-title">{t('dashboard.section.visits')}</h2>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={visitData}>
@@ -162,8 +165,8 @@ export default function DashboardPage() {
                                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
                                 <YAxis stroke="#94a3b8" fontSize={12} />
                                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' }} />
-                                <Bar dataKey="Completed" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="Pending" fill="#475569" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="completed" name={t('dashboard.visits.completed')} fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="pending" name={t('dashboard.visits.pending')} fill="#475569" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -174,7 +177,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* AE by Severity */}
                 <div className="card">
-                    <h2 className="section-title">AE Severity Distribution</h2>
+                    <h2 className="section-title">{t('dashboard.section.ae_severity')}</h2>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.adverseEvents.bySeverity.map(s => ({ name: s.severity, count: s.count }))} layout="vertical">
@@ -195,7 +198,7 @@ export default function DashboardPage() {
                 {/* Arm Comparison */}
                 {canViewTreatment ? (
                     <div className="card">
-                        <h2 className="section-title">Blinded Group Comparison (A vs B)</h2>
+                        <h2 className="section-title">{t('dashboard.section.arm_comparison')}</h2>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={armComparison}>
@@ -204,8 +207,8 @@ export default function DashboardPage() {
                                     <YAxis stroke="#94a3b8" fontSize={12} />
                                     <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' }} />
                                     <Legend wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
-                                    <Bar dataKey="Enrolled" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="AEs" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Enrolled" name={t('dashboard.enrolled')} fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="AEs" name={t('dashboard.stat.adverse_events')} fill="#f59e0b" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -218,7 +221,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* ACR Trend */}
                     <div className="card">
-                        <h2 className="section-title">ACR Trend (A vs B)</h2>
+                        <h2 className="section-title">{t('dashboard.section.acr_trend')}</h2>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={data.trends.ACR}>
@@ -227,8 +230,8 @@ export default function DashboardPage() {
                                     <YAxis stroke="#94a3b8" fontSize={12} />
                                     <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' }} />
                                     <Legend wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
-                                    <Line type="monotone" name="Group A" dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
-                                    <Line type="monotone" name="Group B" dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
+                                    <Line type="monotone" name={t('dashboard.group_a')} dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
+                                    <Line type="monotone" name={t('dashboard.group_b')} dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -236,7 +239,7 @@ export default function DashboardPage() {
 
                     {/* eGFR Trend */}
                     <div className="card">
-                        <h2 className="section-title">eGFR Trend (A vs B)</h2>
+                        <h2 className="section-title">{t('dashboard.section.egfr_trend')}</h2>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={data.trends.EGFR}>
@@ -245,8 +248,8 @@ export default function DashboardPage() {
                                     <YAxis stroke="#94a3b8" fontSize={12} />
                                     <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' }} />
                                     <Legend wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
-                                    <Line type="monotone" name="Group A" dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
-                                    <Line type="monotone" name="Group B" dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
+                                    <Line type="monotone" name={t('dashboard.group_a')} dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
+                                    <Line type="monotone" name={t('dashboard.group_b')} dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
@@ -257,7 +260,7 @@ export default function DashboardPage() {
             {/* Recent SAEs */}
             {data.adverseEvents.recent.some(ae => ae.isSAE) && (
                 <div className="card border-red-500/30">
-                    <h2 className="section-title text-red-400">⚠️ Recent SAE Alerts</h2>
+                    <h2 className="section-title text-red-400">{t('dashboard.section.sae_alerts')}</h2>
                     <div className="space-y-2">
                         {data.adverseEvents.recent.filter(ae => ae.isSAE).map(ae => (
                             <div key={ae.id} className="flex items-center gap-4 p-3 rounded-lg bg-red-500/5 border border-red-500/10">

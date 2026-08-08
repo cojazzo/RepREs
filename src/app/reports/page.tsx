@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function ReportsPage() {
+    const { t } = useLanguage();
     const [exporting, setExporting] = useState('');
 
     const exportCSV = async (type: string) => {
@@ -32,7 +34,7 @@ export default function ReportsPage() {
                 ),
             ].join('\n');
 
-            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -46,18 +48,19 @@ export default function ReportsPage() {
     };
 
     const reportTypes = [
-        { type: 'participants', label: 'Participants', description: 'All participants with demographics, status, and arm assignment', icon: '👥' },
-        { type: 'visits', label: 'Visit Data', description: 'Completed visits with vitals and adherence data', icon: '📅' },
-        { type: 'labs', label: 'Laboratory Results', description: 'All lab results with analyte names, values, and reference ranges', icon: '🔬' },
-        { type: 'adverse-events', label: 'Adverse Events', description: 'All AEs with severity, relation, outcome, and SAE flag', icon: '⚠️' },
+        { type: 'participants', label: t('reports.type.participants'), description: t('reports.type.participants_desc'), icon: '👥' },
+        { type: 'visits', label: t('reports.type.visits'), description: t('reports.type.visits_desc'), icon: '📅' },
+        { type: 'labs', label: t('reports.type.labs'), description: t('reports.type.labs_desc'), icon: '🔬' },
+        { type: 'adverse-events', label: t('reports.type.ae'), description: t('reports.type.ae_desc'), icon: '⚠️' },
     ];
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="page-header">
+            <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-primary-500/20 rounded-xl text-primary-400">📄</div>
                 <div>
-                    <h1 className="page-title">Reports & Export</h1>
-                    <p className="text-surface-400 mt-1 text-sm">Download study data in CSV format</p>
+                    <h2 className="text-xl font-bold text-white">{t('nav.reports')}</h2>
+                    <p className="text-surface-400 mt-1 text-sm">{t('reports.download_csv_desc')}</p>
                 </div>
             </div>
 
@@ -80,10 +83,10 @@ export default function ReportsPage() {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                             </svg>
-                                            Exporting...
+                                            ⏳ {t('common.exporting')}
                                         </span>
                                     ) : (
-                                        '📥 Download CSV'
+                                        `📥 ${t('reports.download_csv')}`
                                     )}
                                 </button>
                             </div>
@@ -94,12 +97,12 @@ export default function ReportsPage() {
 
             {/* Info */}
             <div className="card bg-surface-800/40">
-                <h3 className="text-sm font-medium text-surface-300 mb-2">📋 Export Notes</h3>
+                <h3 className="text-sm font-medium text-surface-300 mb-2">📋 {t('reports.notes.title')}</h3>
                 <ul className="text-sm text-surface-400 space-y-1 list-disc list-inside">
-                    <li>All exports use blinded group labels (Group A / Group B)</li>
-                    <li>Timestamps are in ISO 8601 format</li>
-                    <li>CSV files use comma delimiters and UTF-8 encoding</li>
-                    <li>For PDF patient summaries, visit a participant detail page</li>
+                    <li>{t('reports.notes.blinded')}</li>
+                    <li>{t('reports.notes.iso')}</li>
+                    <li>{t('reports.notes.csv')}</li>
+                    <li>{t('reports.notes.pdf')}</li>
                 </ul>
             </div>
         </div>

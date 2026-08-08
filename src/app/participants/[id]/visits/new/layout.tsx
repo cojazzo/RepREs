@@ -3,6 +3,7 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface WizardContextType {
     visitId: string | null;
@@ -20,16 +21,11 @@ export const useWizard = () => {
     return ctx;
 };
 
-const STEPS = [
-    { id: 'clinical', label: 'Clinical Data', icon: '🩺', path: 'clinical' },
-    { id: 'labs', label: 'Labs', icon: '🔬', path: 'labs' },
-    { id: 'adverse-events', label: 'Adverse Events', icon: '⚠️', path: 'adverse-events' },
-];
-
 export default function WizardLayout({ children }: { children: React.ReactNode }) {
     const params = useParams();
     const pathname = usePathname();
     const router = useRouter();
+    const { t } = useLanguage();
     const participantId = params.id as string;
 
     const [visitId, setVisitId] = useState<string | null>(null);
@@ -38,6 +34,12 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
     const [visitType, setVisitType] = useState('');
     const [showTypeSelector, setShowTypeSelector] = useState(true);
     const [loading, setLoading] = useState(true);
+
+    const STEPS = [
+        { id: 'clinical', label: t('visit.step.clinical'), icon: '🩺', path: 'clinical' },
+        { id: 'labs', label: t('visit.step.labs'), icon: '🔬', path: 'labs' },
+        { id: 'adverse-events', label: t('visit.step.ae'), icon: '⚠️', path: 'adverse-events' },
+    ];
 
     // Load participant info
     useEffect(() => {
@@ -96,14 +98,14 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
                 <div className="page-header">
                     <div className="flex items-center gap-4">
                         <button onClick={() => router.push(`/participants/${participantId}`)} className="btn-ghost text-sm">
-                            ← Back to Patient
+                            {t('visit.back_to_patient')}
                         </button>
                         <div>
-                            <h1 className="page-title">Add Visit</h1>
+                            <h1 className="page-title">{t('visit.add_visit')}</h1>
                             {participant && (
                                 <p className="text-surface-400 mt-1 text-sm">
                                     {participant.studyId} — {participant.lastName}, {participant.firstName}
-                                    {age !== null && ` • Age ${age}`}
+                                    {age !== null && ` • ${t('common.age')} ${age}`}
                                 </p>
                             )}
                         </div>
@@ -113,25 +115,25 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
                 {/* Visit Type Selector */}
                 {showTypeSelector && currentStepIndex < 0 && (
                     <div className="card max-w-lg mx-auto">
-                        <h2 className="section-title">Select Visit Type</h2>
+                        <h2 className="section-title">{t('visit.select_type.title')}</h2>
                         <div className="space-y-4">
                             <select
                                 className="select w-full"
                                 value={visitType}
                                 onChange={e => setVisitType(e.target.value)}
                             >
-                                <option value="">— Choose visit type —</option>
-                                <option value="BASELINE">Baseline</option>
-                                <option value="MONTH_2">Month 2</option>
-                                <option value="MONTH_4">Month 4</option>
-                                <option value="MONTH_6">Month 6</option>
+                                <option value="">{t('visit.select_type.placeholder')}</option>
+                                <option value="BASELINE">{t('visit.type.baseline')}</option>
+                                <option value="MONTH_2">{t('visit.type.month2')}</option>
+                                <option value="MONTH_4">{t('visit.type.month4')}</option>
+                                <option value="MONTH_6">{t('visit.type.month6')}</option>
                             </select>
                             <button
                                 onClick={createDraftVisit}
                                 disabled={!visitType}
                                 className="btn-primary w-full"
                             >
-                                Start Visit Wizard
+                                {t('visit.btn.start_wizard')}
                             </button>
                         </div>
                     </div>
@@ -160,7 +162,7 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
                                         >
                                             <span>{isCompleted ? '✓' : step.icon}</span>
                                             <span className="hidden sm:inline">{step.label}</span>
-                                            <span className="sm:hidden">Step {i + 1}</span>
+                                            <span className="sm:hidden">{t('visit.step')} {i + 1}</span>
                                         </div>
                                     </React.Fragment>
                                 );
