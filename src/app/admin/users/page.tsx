@@ -24,11 +24,11 @@ export default function AdminUsersPage() {
 
     const ROLE_OPTIONS = [
         { value: 'ADMIN', label: t('admin.role.admin') },
-        { value: 'INVESTIGATOR', label: t('admin.role.inv') },
-        { value: 'DATA_ENTRY', label: t('admin.role.data') },
+        { value: 'INVESTIGATOR', label: t('admin.role.investigator') as any },
+        { value: 'DATA_ENTRY', label: t('admin.role.data_entry') as any },
         { value: 'MONITOR', label: t('admin.role.monitor') },
         { value: 'PHARMACY', label: t('admin.role.pharmacy') },
-        { value: 'READ_ONLY', label: t('admin.role.read') },
+        { value: 'READ_ONLY', label: t('admin.role.read_only') as any },
     ];
 
     // Create user
