@@ -100,7 +100,7 @@ export default function ReportsPage() {
                 <h3 className="text-sm font-medium text-surface-300 mb-2">📋 {t('reports.notes.title')}</h3>
                 <ul className="text-sm text-surface-400 space-y-1 list-disc list-inside">
                     <li>{t('reports.notes.blinded')}</li>
-                    <li>{t('reports.notes.iso')}</li>
+                    <li>{t('reports.notes.timestamps')}</li>
                     <li>{t('reports.notes.csv')}</li>
                     <li>{t('reports.notes.pdf')}</li>
                 </ul>

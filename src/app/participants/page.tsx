@@ -90,7 +90,7 @@ export default function ParticipantsPage() {
                     onChange={e => setStatusFilter(e.target.value)}
                     className="select max-w-xs"
                 >
-                    <option value="">{t('participants.filter.all')}</option>
+                    <option value="">{t('participants.filter.all_status') as any}</option>
                     <option value="SCREENING">{t('participants.filter.screening')}</option>
                     <option value="ACTIVE">{t('participants.filter.active')}</option>
                     <option value="COMPLETED">{t('participants.filter.completed')}</option>

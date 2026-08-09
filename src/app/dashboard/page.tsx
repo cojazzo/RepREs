@@ -138,7 +138,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Participant Status */}
                 <div className="card">
-                    <h2 className="section-title">{t('dashboard.section.status')}</h2>
+                    <h2 className="section-title">{t('dashboard.section.participant_status') as any}</h2>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
 
                 {/* Visit Completion */}
                 <div className="card">
-                    <h2 className="section-title">{t('dashboard.section.visits')}</h2>
+                    <h2 className="section-title">{t('dashboard.section.visit_completion') as any}</h2>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={visitData}>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                 {/* Arm Comparison */}
                 {canViewTreatment ? (
                     <div className="card">
-                        <h2 className="section-title">{t('dashboard.section.arm_comparison')}</h2>
+                        <h2 className="section-title">{t('dashboard.section.group_comparison') as any}</h2>
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={armComparison}>

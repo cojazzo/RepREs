@@ -12,10 +12,10 @@ export default function VisitCRFPage() {
     const visitType = params.visitType as string;
 
     const VISIT_LABELS: Record<string, string> = {
-        BASELINE: t('common.visit.baseline'),
-        MONTH_2: t('common.visit.month2'),
-        MONTH_4: t('common.visit.month4'),
-        MONTH_6: t('common.visit.month6'),
+        BASELINE: t('visit.type.baseline') as any,
+        MONTH_2: t('visit.type.month2') as any,
+        MONTH_4: t('visit.type.month4') as any,
+        MONTH_6: t('visit.type.month6') as any,
     };
 
     const [participant, setParticipant] = useState<any>(null);
@@ -113,7 +113,7 @@ export default function VisitCRFPage() {
         return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full" /></div>;
     }
 
-    if (!visit) return <div className="text-surface-400">{t('visit_crf.not_found')}</div>;
+    if (!visit) return <div className="text-surface-400">{t('visit_detail.not_found') as any}</div>;
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
@@ -121,27 +121,27 @@ export default function VisitCRFPage() {
                 <div className="flex items-center gap-4">
                     <button onClick={() => router.back()} className="btn-ghost text-sm">← {t('common.back')}</button>
                     <div>
-                        <h1 className="page-title">{VISIT_LABELS[visitType] || visitType} {t('visit_crf.visit_title')}</h1>
+                        <h1 className="page-title">{VISIT_LABELS[visitType] || visitType} {t('visit_detail.title_suffix') as any}</h1>
                         <p className="text-surface-400 mt-1 text-sm">{participant?.studyId} — {participant?.lastName}, {participant?.firstName}</p>
                     </div>
                 </div>
-                {visit.completed && <span className="badge-success">{t('visit_crf.completed')}</span>}
+                {visit.completed && <span className="badge-success">{t('visit_detail.completed') as any}</span>}
             </div>
 
             {/* Vitals */}
             <div className="card">
-                <h2 className="section-title">{t('visit_crf.vitals.title')}</h2>
+                <h2 className="section-title">{t('visit_detail.section.vitals') as any}</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="label">{t('visit_crf.vitals.weight')}</label>
+                        <label className="label">{t('visit_detail.vitals.weight') as any}</label>
                         <input type="number" step="0.1" className="input" value={vitals.weightKg} onChange={e => setVitals(v => ({ ...v, weightKg: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.vitals.height')}</label>
+                        <label className="label">{t('visit_detail.vitals.height') as any}</label>
                         <input type="number" step="0.1" className="input" value={vitals.heightCm} onChange={e => setVitals(v => ({ ...v, heightCm: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.vitals.bmi')}</label>
+                        <label className="label">{t('visit_detail.vitals.bmi') as any}</label>
                         <div className="input bg-surface-700/50 text-surface-300">
                             {vitals.weightKg && vitals.heightCm
                                 ? (parseFloat(vitals.weightKg) / Math.pow(parseFloat(vitals.heightCm) / 100, 2)).toFixed(1)
@@ -149,15 +149,15 @@ export default function VisitCRFPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.vitals.sys_bp')}</label>
+                        <label className="label">{t('visit_detail.vitals.systolic') as any}</label>
                         <input type="number" className="input" value={vitals.systolicBp} onChange={e => setVitals(v => ({ ...v, systolicBp: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.vitals.dia_bp')}</label>
+                        <label className="label">{t('visit_detail.vitals.diastolic') as any}</label>
                         <input type="number" className="input" value={vitals.diastolicBp} onChange={e => setVitals(v => ({ ...v, diastolicBp: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.vitals.hr')}</label>
+                        <label className="label">{t('visit_detail.vitals.hr') as any}</label>
                         <input type="number" className="input" value={vitals.heartRate} onChange={e => setVitals(v => ({ ...v, heartRate: e.target.value }))} />
                     </div>
                 </div>
@@ -165,16 +165,16 @@ export default function VisitCRFPage() {
 
             {/* Clinical Assessment */}
             <div className="card">
-                <h2 className="section-title">{t('visit_crf.assessment.title')}</h2>
+                <h2 className="section-title">{t('visit_detail.section.clinical') as any}</h2>
                 <div className="space-y-4">
                     <div>
-                        <label className="label">{t('visit_crf.assessment.symptoms')}</label>
-                        <textarea className="input min-h-[80px]" placeholder={t('visit_crf.assessment.symptoms_placeholder')}
+                        <label className="label">{t('visit_detail.clinical.symptoms') as any}</label>
+                        <textarea className="input min-h-[80px]" placeholder={t('visit_detail.clinical.symptom_placeholder') as any}
                             value={assessment.symptoms} onChange={e => setAssessment(a => ({ ...a, symptoms: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.assessment.exam_notes')}</label>
-                        <textarea className="input min-h-[80px]" placeholder={t('visit_crf.assessment.exam_placeholder')}
+                        <label className="label">{t('visit_detail.clinical.exam') as any}</label>
+                        <textarea className="input min-h-[80px]" placeholder={t('visit_detail.clinical.exam_placeholder') as any}
                             value={assessment.physicalExamNotes} onChange={e => setAssessment(a => ({ ...a, physicalExamNotes: e.target.value }))} />
                     </div>
                     <div className="flex items-center gap-3">
@@ -182,13 +182,13 @@ export default function VisitCRFPage() {
                             <input type="checkbox" checked={assessment.continuationCriteria}
                                 onChange={e => setAssessment(a => ({ ...a, continuationCriteria: e.target.checked }))}
                                 className="w-4 h-4 rounded" />
-                            <span className="text-sm text-surface-200">{t('visit_crf.assessment.continuation_met')}</span>
+                            <span className="text-sm text-surface-200">{t('visit_detail.clinical.continuation') as any}</span>
                         </label>
                     </div>
                     {!assessment.continuationCriteria && (
                         <div>
-                            <label className="label">{t('visit_crf.assessment.discontinuation_reason')}</label>
-                            <textarea className="input" placeholder={t('visit_crf.assessment.discontinuation_placeholder')}
+                            <label className="label">{t('visit_detail.clinical.discontinuation') as any}</label>
+                            <textarea className="input" placeholder={t('visit_detail.clinical.discontinuation_placeholder') as any}
                                 value={assessment.continuationNotes} onChange={e => setAssessment(a => ({ ...a, continuationNotes: e.target.value }))} />
                         </div>
                     )}
@@ -197,21 +197,21 @@ export default function VisitCRFPage() {
 
             {/* Adherence */}
             <div className="card">
-                <h2 className="section-title">{t('visit_crf.adherence.title')}</h2>
+                <h2 className="section-title">{t('visit_detail.section.adherence') as any}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="label">{t('visit_crf.adherence.percent')}</label>
+                        <label className="label">{t('visit_detail.adherence.percent') as any}</label>
                         <input type="number" step="0.1" min="0" max="100" className="input"
                             value={adherence.adherencePercent} onChange={e => setAdherence(a => ({ ...a, adherencePercent: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.adherence.missed')}</label>
+                        <label className="label">{t('visit_detail.adherence.missed') as any}</label>
                         <input type="number" min="0" className="input"
                             value={adherence.missedDoses} onChange={e => setAdherence(a => ({ ...a, missedDoses: e.target.value }))} />
                     </div>
                     <div>
-                        <label className="label">{t('visit_crf.adherence.reason')}</label>
-                        <input className="input" placeholder={t('visit_crf.adherence.reason_placeholder')}
+                        <label className="label">{t('visit_detail.adherence.reason') as any}</label>
+                        <input className="input" placeholder={t('visit_detail.adherence.reason_placeholder') as any}
                             value={adherence.reasonForNonAdherence} onChange={e => setAdherence(a => ({ ...a, reasonForNonAdherence: e.target.value }))} />
                     </div>
                 </div>
@@ -221,7 +221,7 @@ export default function VisitCRFPage() {
             <div className="flex gap-3 justify-end">
                 <button onClick={() => router.back()} className="btn-secondary">{t('common.cancel')}</button>
                 <button onClick={handleSave} disabled={saving} className="btn-primary">
-                    {saving ? t('common.saving') : t('visit_crf.btn_save')}
+                    {saving ? t('common.saving') : t('visit_detail.btn.save') as any}
                 </button>
             </div>
         </div>

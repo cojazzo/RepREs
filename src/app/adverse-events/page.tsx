@@ -58,7 +58,7 @@ export default function AdverseEventsPage() {
             {/* Filters */}
             <div className="flex gap-4 items-center">
                 <select className="select max-w-xs" value={severityFilter} onChange={e => setSeverityFilter(e.target.value)}>
-                    <option value="">{t('ae.filter.all')}</option>
+                    <option value="">{t('ae.filter.all_severities') as any}</option>
                     <option value="MILD">{t('ae.filter.mild')}</option>
                     <option value="MODERATE">{t('ae.filter.moderate')}</option>
                     <option value="SEVERE">{t('ae.filter.severe')}</option>
@@ -75,7 +75,7 @@ export default function AdverseEventsPage() {
                     <span className="text-xl">🚨</span>
                     <div>
                         <p className="text-red-400 font-medium">{t('ae.sae_banner.title')}</p>
-                        <p className="text-sm text-surface-400">{saeCount} {t('ae.sae_banner.desc')}</p>
+                        <p className="text-sm text-surface-400">{saeCount} {t('ae.sae_banner.subtitle') as any}</p>
                     </div>
                 </div>
             )}

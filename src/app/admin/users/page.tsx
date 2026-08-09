@@ -73,10 +73,10 @@ export default function AdminUsersPage() {
     const handleSave = async () => {
         if (!editUser) return;
         if (editForm.password && editForm.password.length < 6) {
-            setSaveMsg({ type: 'err', text: t('admin.edit.pwd_min') }); return;
+            setSaveMsg({ type: 'err', text: t('admin.edit.error.too_short') as any }); return;
         }
         if (editForm.password && editForm.password !== editForm.confirmPassword) {
-            setSaveMsg({ type: 'err', text: t('admin.edit.pwd_match') }); return;
+            setSaveMsg({ type: 'err', text: t('admin.edit.error.mismatch') as any }); return;
         }
         setSaving(true); setSaveMsg(null);
         const body: Record<string, any> = { name: editForm.name, role: editForm.role, active: editForm.active };
@@ -130,22 +130,22 @@ export default function AdminUsersPage() {
             {/* New User Form */}
             {showNew && (
                 <div className="card border-primary-500/30">
-                    <h2 className="section-title">{t('admin.create.title')}</h2>
+                    <h2 className="section-title">{t('admin.form.title') as any}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label className="label">{t('admin.create.name')}</label>
+                            <label className="label">{t('admin.form.name') as any}</label>
                             <input className="input" value={newUser.name} onChange={e => setNewUser(u => ({ ...u, name: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">{t('admin.create.email')}</label>
+                            <label className="label">{t('admin.form.email') as any}</label>
                             <input type="email" className="input" value={newUser.email} onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">{t('admin.create.password')}</label>
+                            <label className="label">{t('admin.form.password') as any}</label>
                             <input type="password" className="input" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">{t('admin.create.role')}</label>
+                            <label className="label">{t('admin.form.role') as any}</label>
                             <select className="select" value={newUser.role} onChange={e => setNewUser(u => ({ ...u, role: e.target.value }))}>
                                 {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="flex gap-3 justify-end">
                         <button onClick={() => setShowNew(false)} className="btn-secondary">{t('common.cancel')}</button>
-                        <button onClick={createUser} className="btn-primary" disabled={!newUser.email || !newUser.name || !newUser.password}>{t('admin.create.btn')}</button>
+                        <button onClick={createUser} className="btn-primary" disabled={!newUser.email || !newUser.name || !newUser.password}>{t('admin.form.btn.create') as any}</button>
                     </div>
                 </div>
             )}
@@ -257,30 +257,30 @@ export default function AdminUsersPage() {
                                 <span className="text-sm text-surface-200">{t('admin.edit.active')}</span>
                             </label>
                             {!editForm.active && (
-                                <span className="text-[10px] bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">{t('admin.edit.suspended_msg')}</span>
+                                <span className="text-[10px] bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full">{t('admin.edit.suspended_badge') as any}</span>
                             )}
                         </div>
 
                         {/* Password change */}
                         <div className="border-t border-surface-700/50 pt-4">
                             <label className="label">
-                                {t('admin.edit.new_pwd')} <span className="text-surface-500 font-normal">({t('admin.edit.pwd_hint')})</span>
+                                {t('admin.edit.new_password') as any} <span className="text-surface-500 font-normal">({t('admin.edit.password_note') as any})</span>
                             </label>
                             <input
-                                type="password" className="input" placeholder={t('admin.edit.pwd_min')}
+                                type="password" className="input" placeholder={t('admin.edit.password_placeholder') as any}
                                 value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))}
                             />
                         </div>
                         {editForm.password && (
                             <div>
-                                <label className="label">{t('admin.edit.confirm_pwd')}</label>
+                                <label className="label">{t('admin.edit.confirm_password') as any}</label>
                                 <input
-                                    type="password" className="input" placeholder={t('admin.edit.confirm_pwd')}
+                                    type="password" className="input" placeholder={t('admin.edit.confirm_placeholder') as any}
                                     value={editForm.confirmPassword}
                                     onChange={e => setEditForm(f => ({ ...f, confirmPassword: e.target.value }))}
                                 />
                                 {editForm.confirmPassword && editForm.password !== editForm.confirmPassword && (
-                                    <p className="text-xs text-red-400 mt-1">{t('admin.edit.pwd_match')}</p>
+                                    <p className="text-xs text-red-400 mt-1">{t('admin.edit.error.mismatch') as any}</p>
                                 )}
                             </div>
                         )}
@@ -296,7 +296,7 @@ export default function AdminUsersPage() {
                         <div className="flex gap-3 justify-end pt-2">
                             <button onClick={() => setEditUser(null)} className="btn-ghost">{t('common.cancel')}</button>
                             <button onClick={handleSave} disabled={saving} className="btn-primary">
-                                {saving ? t('common.saving') : t('admin.edit.save')}
+                                {saving ? (t('admin.edit.btn.saving') as any) : (t('admin.edit.btn.save') as any)}
                             </button>
                         </div>
                     </div>

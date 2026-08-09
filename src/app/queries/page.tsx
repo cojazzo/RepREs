@@ -104,32 +104,32 @@ export default function QueriesPage() {
             {/* New Query Form */}
             {showNew && (
                 <div className="card border-primary-500/30">
-                    <h2 className="section-title">{t('queries.modal.new_title')}</h2>
+                    <h2 className="section-title">{t('queries.form.title')}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                            <label className="label">{t('queries.field.entity')}</label>
-                            <input className="input" placeholder={t('queries.placeholder.entity')}
+                            <label className="label">{t('queries.form.entity')}</label>
+                            <input className="input" placeholder={t('queries.form.entity_placeholder')}
                                 value={newQuery.entity} onChange={e => setNewQuery(q => ({ ...q, entity: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">{t('queries.field.entity_id')}</label>
-                            <input className="input" placeholder={t('queries.placeholder.entity_id')}
+                            <label className="label">{t('queries.form.entity_id')}</label>
+                            <input className="input" placeholder={t('queries.form.entity_id_placeholder')}
                                 value={newQuery.entityId} onChange={e => setNewQuery(q => ({ ...q, entityId: e.target.value }))} />
                         </div>
                         <div>
-                            <label className="label">{t('queries.field.data_field')}</label>
-                            <input className="input" placeholder={t('queries.placeholder.data_field')}
+                            <label className="label">{t('queries.form.field')}</label>
+                            <input className="input" placeholder={t('queries.form.field_placeholder')}
                                 value={newQuery.field} onChange={e => setNewQuery(q => ({ ...q, field: e.target.value }))} />
                         </div>
                     </div>
                     <div className="mb-4">
-                        <label className="label">{t('queries.field.query_text')}</label>
-                        <textarea className="input min-h-[80px]" placeholder={t('queries.placeholder.query_text')}
+                        <label className="label">{t('queries.form.query_text')}</label>
+                        <textarea className="input min-h-[80px]" placeholder={t('queries.form.text_placeholder')}
                             value={newQuery.queryText} onChange={e => setNewQuery(q => ({ ...q, queryText: e.target.value }))} />
                     </div>
                     <div className="flex gap-3 justify-end">
                         <button onClick={() => setShowNew(false)} className="btn-secondary">{t('common.cancel')}</button>
-                        <button onClick={createQuery} className="btn-primary" disabled={!newQuery.queryText}>{t('queries.btn.submit')}</button>
+                        <button onClick={createQuery} className="btn-primary" disabled={!newQuery.queryText}>{t('queries.form.btn.submit')}</button>
                     </div>
                 </div>
             )}
@@ -141,7 +141,7 @@ export default function QueriesPage() {
                         <div className="animate-spin w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full" />
                     </div>
                 ) : queries.length === 0 ? (
-                    <div className="card text-center text-surface-400 py-12">{t('queries.no_queries')}</div>
+                    <div className="card text-center text-surface-400 py-12">{t('queries.empty')}</div>
                 ) : (
                     queries.map(q => (
                         <div key={q.id} className={`card ${q.status === 'OPEN' ? 'border-amber-500/20' : q.status === 'RESPONDED' ? 'border-blue-500/20' : 'border-emerald-500/20'}`}>
@@ -149,29 +149,29 @@ export default function QueriesPage() {
                                 <div className="flex items-center gap-3">
                                     <span className={STATUS_BADGE[q.status]}>{q.status}</span>
                                     <span className="text-sm text-surface-400">{q.entity} / {q.entityId}</span>
-                                    <span className="text-xs text-surface-500">{t('queries.field.data_field')}: {q.field}</span>
+                                    <span className="text-xs text-surface-500">{t('queries.form.field')}: {q.field}</span>
                                 </div>
                                 <span className="text-xs text-surface-500">{new Date(q.createdAt).toLocaleString()}</span>
                             </div>
-                            <p className="text-sm text-surface-200 mb-2"><strong>{t('queries.query_label')}:</strong> {q.queryText}</p>
-                            <p className="text-xs text-surface-500 mb-2">{t('queries.created_by')}: {q.creator.name} ({q.creator.role})</p>
+                            <p className="text-sm text-surface-200 mb-2"><strong>{t('queries.card.query')}:</strong> {q.queryText}</p>
+                            <p className="text-xs text-surface-500 mb-2">{t('queries.card.created_by')}: {q.creator.name} ({q.creator.role})</p>
 
                             {q.responseText && (
                                 <div className="p-3 rounded-lg bg-surface-700/30 mt-2">
-                                    <p className="text-sm text-surface-200"><strong>{t('queries.response_label')}:</strong> {q.responseText}</p>
-                                    {q.responder && <p className="text-xs text-surface-500 mt-1">{t('queries.responded_by')}: {q.responder.name}</p>}
+                                    <p className="text-sm text-surface-200"><strong>{t('queries.card.response')}:</strong> {q.responseText}</p>
+                                    {q.responder && <p className="text-xs text-surface-500 mt-1">{t('queries.card.responded_by')}: {q.responder.name}</p>}
                                 </div>
                             )}
 
                             <div className="flex gap-2 mt-3">
                                 {q.status === 'OPEN' && (
                                     <button onClick={() => { setResponseModal(q); setResponseText(''); }} className="btn-secondary text-sm py-1.5">
-                                        {t('queries.btn.respond')}
+                                        {t('queries.card.btn.respond')}
                                     </button>
                                 )}
                                 {q.status === 'RESPONDED' && (
                                     <button onClick={() => resolveQuery(q.id)} className="btn-primary text-sm py-1.5">
-                                        {t('queries.btn.resolve')}
+                                        {t('queries.card.btn.resolve')}
                                     </button>
                                 )}
                             </div>
@@ -184,13 +184,13 @@ export default function QueriesPage() {
             {responseModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="card max-w-lg w-full mx-4">
-                        <h2 className="section-title">{t('queries.modal.respond_title')}</h2>
+                        <h2 className="section-title">{t('queries.modal.title')}</h2>
                         <p className="text-sm text-surface-400 mb-4">{responseModal.queryText}</p>
                         <textarea className="input min-h-[100px] mb-4" placeholder={t('queries.placeholder.response')}
                             value={responseText} onChange={e => setResponseText(e.target.value)} />
                         <div className="flex gap-3 justify-end">
                             <button onClick={() => setResponseModal(null)} className="btn-secondary">{t('common.cancel')}</button>
-                            <button onClick={() => respondToQuery(responseModal.id)} className="btn-primary" disabled={!responseText}>{t('queries.btn.submit_response')}</button>
+                            <button onClick={() => respondToQuery(responseModal.id)} className="btn-primary" disabled={!responseText}>{t('queries.form.btn.submit_response')}</button>
                         </div>
                     </div>
                 </div>

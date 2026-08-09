@@ -45,7 +45,7 @@ export default function AuditLogPage() {
             {/* Filter */}
             <div className="flex gap-4">
                 <select className="select max-w-xs" value={entityFilter} onChange={e => { setEntityFilter(e.target.value); setPage(1); }}>
-                    <option value="">{t('audit.filter.all')}</option>
+                    <option value="">{t('audit.filter.all_entities') as any}</option>
                     <option value="Participant">{t('audit.filter.participant')}</option>
                     <option value="Visit">{t('audit.filter.visit')}</option>
                     <option value="LabResult">{t('audit.filter.lab')}</option>

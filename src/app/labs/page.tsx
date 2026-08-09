@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import * as XLSX from 'xlsx';
-import { Loader2 } from 'lucide-react';
+
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 // ─── Types ───
