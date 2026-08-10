@@ -48,7 +48,7 @@ export default function AppointmentsPage() {
   const [newAppt, setNewAppt] = useState({
     participantId: '',
     visitType: 'BASELINE',
-    scheduledDate: new Date().toISOString().split('T')[0],
+    scheduledDate: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
     isCompleted: false,
     notes: ''
   });
@@ -138,7 +138,7 @@ export default function AppointmentsPage() {
       setNewAppt({
         participantId: '',
         visitType: 'BASELINE',
-        scheduledDate: new Date().toISOString().split('T')[0],
+        scheduledDate: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
         isCompleted: false,
         notes: ''
       });
@@ -444,9 +444,9 @@ export default function AppointmentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-surface-400 mb-1">Date</label>
+                  <label className="block text-sm text-surface-400 mb-1">Date & Time</label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     className="input w-full"
                     value={newAppt.scheduledDate}
                     onChange={(e) => setNewAppt({ ...newAppt, scheduledDate: e.target.value })}
