@@ -14,6 +14,7 @@ interface Participant {
     status: string;
     enrolledAt: string;
     randomization?: { armLabel: string; treatment?: string };
+    appointments?: { id: string; scheduledDate: string; status: string }[];
     _count: { visits: number; adverseEvents: number };
 }
 
@@ -135,6 +136,7 @@ export default function ParticipantsPage() {
                                     <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.age')}</th>
                                     <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.arm')}</th>
                                     <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.status')}</th>
+                                    <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.appointment')}</th>
                                     <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.visits')}</th>
                                     <th className="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-6 py-3">{t('participants.col.aes')}</th>
                                 </tr>
@@ -163,6 +165,20 @@ export default function ParticipantsPage() {
                                             <span className={STATUS_BADGES[p.status] || 'badge-neutral'}>
                                                 {p.status.replace('_', ' ')}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-surface-200">
+                                            {p.appointments && p.appointments.length > 0 ? (
+                                                <div className="flex items-center gap-2">
+                                                    {p.appointments.some(a => a.status === 'MISSED') ? (
+                                                        <span className="w-2 h-2 rounded-full bg-red-500" title="Missed appointment"></span>
+                                                    ) : p.appointments.some(a => a.status === 'SCHEDULED' && new Date(a.scheduledDate) <= new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)) ? (
+                                                        <span className="w-2 h-2 rounded-full bg-yellow-500" title="Upcoming within 3 days"></span>
+                                                    ) : null}
+                                                    {new Date(p.appointments[0].scheduledDate).toLocaleDateString()}
+                                                </div>
+                                            ) : (
+                                                <span className="text-surface-500">—</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-surface-300">{p._count.visits}/4</td>
                                         <td className="px-6 py-4 text-sm text-surface-300">{p._count.adverseEvents}</td>

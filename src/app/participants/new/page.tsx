@@ -11,6 +11,7 @@ export default function EnrollParticipantPage() {
     const [error, setError] = useState('');
     const [form, setForm] = useState({
         firstName: '', lastName: '', sex: 'Male', birthDate: '', curp: '', chmhId: '', phone: '',
+        enrollmentDate: new Date().toISOString().split('T')[0]
     });
     const [screening, setScreening] = useState({
         acrOver30: false, acrValue1: '', acrValue2: '', acrValue3: '', informedConsent: false, willingToComply: false,
@@ -99,6 +100,10 @@ export default function EnrollParticipantPage() {
                     <div>
                         <label className="label">{t('enroll.field.phone')}</label>
                         <input type="tel" className="input" placeholder={t('enroll.placeholder.phone')} value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+                    </div>
+                    <div>
+                        <label className="label">Fecha de Visita Baseline</label>
+                        <input type="date" className="input" value={form.enrollmentDate} onChange={e => setForm(f => ({ ...f, enrollmentDate: e.target.value }))} required />
                     </div>
                 </div>
             </div>

@@ -24,6 +24,7 @@ interface DashboardData {
         ACR: { name: string; GroupA: number | null; GroupB: number | null }[];
         EGFR: { name: string; GroupA: number | null; GroupB: number | null }[];
     };
+    appointments: { todayCount: number; overdueCount: number; recontactPending: { studyId: string; name: string; missedDate: string; attempts: number }[] };
 }
 
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -91,6 +92,8 @@ export default function DashboardPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard label={t('dashboard.stat.appointments_today')} value={data.appointments.todayCount} sub={`${data.appointments.overdueCount} ${t('dashboard.stat.overdue_appointments')}`}
+                    gradient="from-cyan-600 to-cyan-400" icon="📅" />
                 <StatCard label={t('dashboard.stat.total_enrolled')} value={enrolledTotal} sub={`${recruitmentPercent}% ${t('dashboard.stat.of_target')}`}
                     gradient="from-primary-600 to-primary-400" icon="👥" />
                 <StatCard label={t('dashboard.stat.visit_completion')} value={`${data.visits.completionRate}%`}
@@ -268,6 +271,23 @@ export default function DashboardPage() {
                                 <span className="text-sm text-surface-200">{ae.studyId}</span>
                                 <span className="text-sm text-surface-400">{ae.description}</span>
                                 <span className="text-xs text-surface-500 ml-auto">{new Date(ae.createdAt).toLocaleDateString()}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Patients to Recontact */}
+            {data.appointments.recontactPending.length > 0 && (
+                <div className="card border-amber-500/30">
+                    <h2 className="section-title text-amber-400">{t('dashboard.section.recontact_alerts')}</h2>
+                    <div className="space-y-2">
+                        {data.appointments.recontactPending.map((pt, i) => (
+                            <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                                <span className="badge-warning">MISSED</span>
+                                <span className="text-sm text-surface-200">{pt.studyId} - {pt.name}</span>
+                                <span className="text-sm text-surface-400">Attempts: {pt.attempts}</span>
+                                <span className="text-xs text-surface-500 ml-auto">{new Date(pt.missedDate).toLocaleDateString()}</span>
                             </div>
                         ))}
                     </div>

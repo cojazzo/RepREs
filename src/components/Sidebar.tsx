@@ -11,6 +11,7 @@ import { Role } from '@prisma/client';
 const navigation = [
     { translationKey: 'nav.dashboard' as TranslationKey, href: '/dashboard', icon: '📊', roles: null },
     { translationKey: 'nav.participants' as TranslationKey, href: '/participants', icon: '👥', roles: null },
+    { translationKey: 'nav.appointments' as TranslationKey, href: '/appointments', icon: '📅', roles: null },
     { translationKey: 'nav.adverse_events' as TranslationKey, href: '/adverse-events', icon: '⚠️', roles: null },
     { translationKey: 'nav.labs' as TranslationKey, href: '/labs', icon: '🔬', roles: null },
     { translationKey: 'nav.pharmacy' as TranslationKey, href: '/pharmacy', icon: '💊', roles: [Role.ADMIN, Role.PHARMACY] as Role[] },

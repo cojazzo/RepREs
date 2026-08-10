@@ -111,6 +111,7 @@ model Participant {
   visits          Visit[]
   adverseEvents   AdverseEvent[]
   dispensations   Dispensation[]
+  appointments    Appointment[]
 
   @@index([status])
 }
@@ -180,6 +181,7 @@ model Visit {
   crfLabResults       CrfLabResult[]
   visitAdherence      VisitAdherence?
   visitAe             VisitAe?
+  appointment         Appointment?
 
   @@unique([participantId, visitType])
   @@index([visitType])
@@ -452,4 +454,74 @@ model VisitAe {
   observaciones  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+  RESCHEDULED
+  CANCELLED
+}
+
+enum ContactMethod {
+  PHONE
+  WHATSAPP
+  EMAIL
+  IN_PERSON
+  OTHER
+}
+
+enum ContactResult {
+  ANSWERED
+  NO_ANSWER
+  WRONG_NUMBER
+  VOICEMAIL
+  REFUSED
+  UNREACHABLE
+}
+
+model Appointment {
+  id              String             @id @default(uuid())
+  participantId   String
+  participant     Participant        @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  visitId         String?            @unique
+  visit           Visit?             @relation(fields: [visitId], references: [id], onDelete: SetNull)
+
+  scheduledDate   DateTime
+  status          AppointmentStatus  @default(SCHEDULED)
+  notes           String?
+
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  cancelReason    String?
+
+  rescheduledFromId String?
+  rescheduledFrom   Appointment?     @relation("RescheduleChain", fields: [rescheduledFromId], references: [id])
+  rescheduledTo     Appointment[]    @relation("RescheduleChain")
+
+  contactAttempts ContactAttempt[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([participantId])
+  @@index([scheduledDate])
+  @@index([status])
+}
+
+model ContactAttempt {
+  id              String         @id @default(uuid())
+  appointmentId   String
+  appointment     Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  attemptDate     DateTime       @default(now())
+  method          ContactMethod
+  result          ContactResult
+  contactedBy     String
+  notes           String?
+
+  createdAt       DateTime       @default(now())
+
+  @@index([appointmentId])
 }

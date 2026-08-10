@@ -34,6 +34,22 @@ export async function GET(req: NextRequest) {
             _count: {
                 select: { visits: { where: { completed: true } }, adverseEvents: true },
             },
+            screening: true,
+            visits: {
+                select: {
+                    visitType: true,
+                    completed: true,
+                    visitDate: true,
+                    status: true
+                },
+                orderBy: { createdAt: 'desc' }
+            },
+            appointments: {
+                where: { status: { in: ['SCHEDULED', 'MISSED'] } },
+                orderBy: { scheduledDate: 'asc' },
+                take: 2,
+                select: { id: true, scheduledDate: true, status: true },
+            },
         },
         orderBy: { createdAt: 'desc' },
     });
@@ -47,7 +63,7 @@ export async function POST(req: NextRequest) {
     if (!canEdit(session.user.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json();
-    const { firstName, lastName, sex, birthDate, curp, chmhId, phone, screening, enroll } = body;
+    const { firstName, lastName, sex, birthDate, curp, chmhId, phone, screening, enroll, enrollmentDate } = body;
 
     // Check for duplicates
     const orConditions: any[] = [
@@ -101,7 +117,7 @@ export async function POST(req: NextRequest) {
             phone: phone || null,
             status: enroll ? ParticipantStatus.ACTIVE : ParticipantStatus.SCREENING,
             consentDate: new Date(),
-            enrolledAt: enroll ? new Date() : null,
+            enrolledAt: enroll ? new Date(enrollmentDate || new Date()) : null,
             screening: screening ? {
                 create: {
                     acrOver30: screening.acrOver30 ?? false,
@@ -132,6 +148,32 @@ export async function POST(req: NextRequest) {
             await prisma.visit.create({
                 data: { participantId: participant.id, visitType },
             });
+        }
+
+        const createdVisits = await prisma.visit.findMany({
+            where: { participantId: participant.id },
+            select: { id: true, visitType: true },
+        });
+
+        const now = enrollmentDate ? new Date(enrollmentDate) : new Date();
+        const visitSchedule: Record<string, Date> = {
+            BASELINE: now,
+            MONTH_2: new Date(now.getFullYear(), now.getMonth() + 2, now.getDate()),
+            MONTH_4: new Date(now.getFullYear(), now.getMonth() + 4, now.getDate()),
+            MONTH_6: new Date(now.getFullYear(), now.getMonth() + 6, now.getDate()),
+        };
+
+        for (const visit of createdVisits) {
+            const schedDate = visitSchedule[visit.visitType];
+            if (schedDate) {
+                await prisma.appointment.create({
+                    data: {
+                        participantId: participant.id,
+                        visitId: visit.id,
+                        scheduledDate: schedDate,
+                    },
+                });
+            }
         }
 
         await createAuditLog({

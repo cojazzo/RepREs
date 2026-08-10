@@ -53,6 +53,34 @@ export async function GET() {
     // Missing data: visits that exist but are not completed
     const missingVisits = totalVisits - completedVisits;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [todayAppointments, overdueAppointments, missedAppointments] = await Promise.all([
+        prisma.appointment.count({
+            where: { scheduledDate: { gte: today, lt: tomorrow }, status: 'SCHEDULED' }
+        }),
+        prisma.appointment.count({
+            where: { status: 'SCHEDULED', scheduledDate: { lt: today } }
+        }),
+        prisma.appointment.findMany({
+            where: { status: 'MISSED' },
+            include: {
+                participant: { select: { studyId: true, firstName: true, lastName: true } },
+                _count: { select: { contactAttempts: true } }
+            }
+        })
+    ]);
+
+    const recontactPending = missedAppointments.map((a: any) => ({
+        studyId: a.participant.studyId,
+        name: `${a.participant.firstName} ${a.participant.lastName}`,
+        missedDate: a.scheduledDate,
+        attempts: a._count.contactAttempts
+    }));
+
     // Visit completion by type
     const visitCompletionByType = await Promise.all(
         ['BASELINE', 'MONTH_2', 'MONTH_4', 'MONTH_6'].map(async (vt) => {
@@ -245,6 +273,11 @@ export async function GET() {
                 isSAE: ae.isSAE,
                 createdAt: ae.createdAt,
             })),
+        },
+        appointments: {
+            todayCount: todayAppointments,
+            overdueCount: overdueAppointments,
+            recontactPending: recontactPending,
         },
     });
 }
