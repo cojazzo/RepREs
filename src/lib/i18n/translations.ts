@@ -98,6 +98,10 @@ export const translations = {
         'dashboard.visits.completed': 'Completed',
         'dashboard.visits.pending': 'Pending',
         'dashboard.enrolled': 'Enrolled',
+        'dashboard.trend.patients': 'Patients',
+        'dashboard.trend.mean': 'Mean',
+        'dashboard.trend.sd': 'SD',
+        'dashboard.trend.n': 'n',
 
         // ── Participants list ─────────────────────────────────────────────────
         'participants.title': 'Participants',
@@ -777,6 +781,10 @@ export const translations = {
         'dashboard.visits.completed': 'Completadas',
         'dashboard.visits.pending': 'Pendientes',
         'dashboard.enrolled': 'Enrolados',
+        'dashboard.trend.patients': 'Pacientes',
+        'dashboard.trend.mean': 'Media',
+        'dashboard.trend.sd': 'DE',
+        'dashboard.trend.n': 'n',
 
         // ── Participants list ─────────────────────────────────────────────────
         'participants.title': 'Participantes',

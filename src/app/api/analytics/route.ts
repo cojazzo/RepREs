@@ -4,6 +4,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
 import { canViewTreatment } from '@/lib/auth';
 
+/** Calcula la desviación estándar muestral de un array de números. */
+function stdDev(values: number[]): number | null {
+    if (values.length < 2) return null;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (values.length - 1);
+    return Math.round(Math.sqrt(variance) * 10) / 10;
+}
+
 export async function GET() {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -206,10 +214,16 @@ export async function GET() {
     ['ACR', 'EGFR'].forEach(baseCode => {
         trends[baseCode] = visitsOrder.map(vt => {
             const vData = visitDataByArmAndType[baseCode][vt];
+            const meanA = vData.armA.length ? Math.round((vData.armA.reduce((a, b) => a + b, 0) / vData.armA.length) * 10) / 10 : null;
+            const meanB = vData.armB.length ? Math.round((vData.armB.reduce((a, b) => a + b, 0) / vData.armB.length) * 10) / 10 : null;
             return {
                 name: vt.replace('_', ' '),
-                GroupA: vData.armA.length ? Math.round((vData.armA.reduce((a, b) => a + b, 0) / vData.armA.length) * 10) / 10 : null,
-                GroupB: vData.armB.length ? Math.round((vData.armB.reduce((a, b) => a + b, 0) / vData.armB.length) * 10) / 10 : null,
+                GroupA: meanA,
+                GroupB: meanB,
+                SDA: stdDev(vData.armA),
+                SDB: stdDev(vData.armB),
+                nA: vData.armA.length,
+                nB: vData.armB.length,
             };
         });
     });
@@ -234,6 +248,10 @@ export async function GET() {
         name: 'ENROLLMENT',
         GroupA: screeningAcrByArm.armA.length ? Math.round((screeningAcrByArm.armA.reduce((a, b) => a + b, 0) / screeningAcrByArm.armA.length) * 10) / 10 : null,
         GroupB: screeningAcrByArm.armB.length ? Math.round((screeningAcrByArm.armB.reduce((a, b) => a + b, 0) / screeningAcrByArm.armB.length) * 10) / 10 : null,
+        SDA: stdDev(screeningAcrByArm.armA),
+        SDB: stdDev(screeningAcrByArm.armB),
+        nA: screeningAcrByArm.armA.length,
+        nB: screeningAcrByArm.armB.length,
     });
 
     const targetPerArm = 100;

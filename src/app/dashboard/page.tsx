@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart, Area } from 'recharts';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { TranslationKey } from '@/lib/i18n/translations';
 
 interface DashboardData {
     recruitment: {
@@ -21,8 +22,8 @@ interface DashboardData {
         recent: { id: string; studyId: string; description: string; severity: string; isSAE: boolean; createdAt: string }[];
     };
     trends: {
-        ACR: { name: string; GroupA: number | null; GroupB: number | null }[];
-        EGFR: { name: string; GroupA: number | null; GroupB: number | null }[];
+        ACR: { name: string; GroupA: number | null; GroupB: number | null; SDA: number | null; SDB: number | null; nA: number; nB: number }[];
+        EGFR: { name: string; GroupA: number | null; GroupB: number | null; SDA: number | null; SDB: number | null; nA: number; nB: number }[];
     };
     appointments: { todayCount: number; overdueCount: number; recontactPending: { studyId: string; name: string; missedDate: string; attempts: number }[] };
 }
@@ -225,37 +226,13 @@ export default function DashboardPage() {
                     {/* ACR Trend */}
                     <div className="card">
                         <h2 className="section-title">{t('dashboard.section.acr_trend')}</h2>
-                        <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data.trends.ACR}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                                    <YAxis stroke="#94a3b8" fontSize={12} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' }} />
-                                    <Legend wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
-                                    <Line type="monotone" name={t('dashboard.group_a')} dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
-                                    <Line type="monotone" name={t('dashboard.group_b')} dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
+                        <TrendChart data={data.trends.ACR} unitLabel="mg/g" t={t} />
                     </div>
 
                     {/* eGFR Trend */}
                     <div className="card">
                         <h2 className="section-title">{t('dashboard.section.egfr_trend')}</h2>
-                        <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={data.trends.EGFR}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                                    <YAxis stroke="#94a3b8" fontSize={12} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0' }} />
-                                    <Legend wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
-                                    <Line type="monotone" name={t('dashboard.group_a')} dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
-                                    <Line type="monotone" name={t('dashboard.group_b')} dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
+                        <TrendChart data={data.trends.EGFR} unitLabel="mL/min/1.73m²" t={t} />
                     </div>
                 </div>
             )}
@@ -293,6 +270,152 @@ export default function DashboardPage() {
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+type TrendPoint = { name: string; GroupA: number | null; GroupB: number | null; SDA: number | null; SDB: number | null; nA: number; nB: number };
+
+/** Prepara los datos añadiendo los límites superior/inferior para las bandas ±DE */
+function prepareTrendData(data: TrendPoint[]) {
+    return data.map(d => ({
+        ...d,
+        bandA: d.GroupA !== null && d.SDA !== null
+            ? [Math.max(0, d.GroupA - d.SDA), d.GroupA + d.SDA] as [number, number]
+            : null,
+        bandB: d.GroupB !== null && d.SDB !== null
+            ? [Math.max(0, d.GroupB - d.SDB), d.GroupB + d.SDB] as [number, number]
+            : null,
+        bandA_lo: d.GroupA !== null && d.SDA !== null ? Math.max(0, d.GroupA - d.SDA) : null,
+        bandA_hi: d.GroupA !== null && d.SDA !== null ? d.GroupA + d.SDA : null,
+        bandB_lo: d.GroupB !== null && d.SDB !== null ? Math.max(0, d.GroupB - d.SDB) : null,
+        bandB_hi: d.GroupB !== null && d.SDB !== null ? d.GroupB + d.SDB : null,
+    }));
+}
+
+function TrendTooltip({ active, payload, label, unitLabel, t }: { active?: boolean; payload?: any[]; label?: string; unitLabel: string; t: (key: TranslationKey) => string }) {
+    if (!active || !payload?.length) return null;
+    const raw = payload[0]?.payload as (TrendPoint & { bandA_lo?: number; bandA_hi?: number; bandB_lo?: number; bandB_hi?: number }) | undefined;
+    if (!raw) return null;
+
+    const groupALabel = t('dashboard.group_a');
+    const groupBLabel = t('dashboard.group_b');
+    const sdLabel = t('dashboard.trend.sd');
+    const nLabel = t('dashboard.trend.n');
+
+    return (
+        <div style={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#e2e8f0', fontSize: '12px', minWidth: '180px' }}>
+            <p style={{ fontWeight: 600, marginBottom: 8, color: '#f1f5f9' }}>{label}</p>
+            {raw.GroupA !== null && (
+                <div style={{ marginBottom: 6 }}>
+                    <span style={{ color: '#3b82f6', fontWeight: 600 }}>{groupALabel}</span>
+                    <br />
+                    <span style={{ color: '#94a3b8' }}>
+                        {raw.GroupA} {unitLabel}
+                        {raw.SDA !== null && <> ± {raw.SDA} ({sdLabel})</>}
+                    </span>
+                    <br />
+                    <span style={{ color: '#64748b' }}>{nLabel} = {raw.nA}</span>
+                </div>
+            )}
+            {raw.GroupB !== null && (
+                <div>
+                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>{groupBLabel}</span>
+                    <br />
+                    <span style={{ color: '#94a3b8' }}>
+                        {raw.GroupB} {unitLabel}
+                        {raw.SDB !== null && <> ± {raw.SDB} ({sdLabel})</>}
+                    </span>
+                    <br />
+                    <span style={{ color: '#64748b' }}>{nLabel} = {raw.nB}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function TrendChart({ data, unitLabel, t }: { data: TrendPoint[]; unitLabel: string; t: (key: TranslationKey) => string }) {
+    const prepared = prepareTrendData(data);
+
+    return (
+        <div>
+            <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={prepared}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
+                        <YAxis stroke="#94a3b8" fontSize={11} />
+                        <Tooltip content={<TrendTooltip unitLabel={unitLabel} t={t} />} />
+                        <Legend wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
+
+                        {/* Banda ±DE Grupo A */}
+                        <Area
+                            type="monotone"
+                            dataKey="bandA_hi"
+                            stroke="none"
+                            fill="#3b82f6"
+                            fillOpacity={0.12}
+                            legendType="none"
+                            name="SD A hi"
+                            connectNulls
+                            isAnimationActive={false}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="bandA_lo"
+                            stroke="none"
+                            fill="#1e293b"
+                            fillOpacity={1}
+                            legendType="none"
+                            name="SD A lo"
+                            connectNulls
+                            isAnimationActive={false}
+                        />
+
+                        {/* Banda ±DE Grupo B */}
+                        <Area
+                            type="monotone"
+                            dataKey="bandB_hi"
+                            stroke="none"
+                            fill="#f59e0b"
+                            fillOpacity={0.12}
+                            legendType="none"
+                            name="SD B hi"
+                            connectNulls
+                            isAnimationActive={false}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="bandB_lo"
+                            stroke="none"
+                            fill="#1e293b"
+                            fillOpacity={1}
+                            legendType="none"
+                            name="SD B lo"
+                            connectNulls
+                            isAnimationActive={false}
+                        />
+
+                        {/* Líneas de media */}
+                        <Line type="monotone" name={t('dashboard.group_a')} dataKey="GroupA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
+                        <Line type="monotone" name={t('dashboard.group_b')} dataKey="GroupB" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} connectNulls />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </div>
+            {/* Fila de N por visita */}
+            <div className="flex mt-2 px-1" style={{ paddingLeft: '42px' }}>
+                {prepared.map((d, i) => (
+                    <div key={i} className="flex-1 text-center">
+                        {(d.nA > 0 || d.nB > 0) && (
+                            <div className="text-xs text-surface-500 leading-tight">
+                                {d.nA > 0 && <span className="text-blue-400/70">A:{d.nA}</span>}
+                                {d.nA > 0 && d.nB > 0 && <span className="text-surface-600 mx-0.5">/</span>}
+                                {d.nB > 0 && <span className="text-amber-400/70">B:{d.nB}</span>}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
