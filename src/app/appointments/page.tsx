@@ -209,7 +209,8 @@ export default function AppointmentsPage() {
     return { style: { backgroundColor, color: '#fff', border: 'none', borderRadius: '4px' } };
   };
 
-  const missedAppointments = appointments.filter(a => a.status === 'MISSED' || (a.status === 'SCHEDULED' && isPast(new Date(a.scheduledDate))));
+  const overdueAlarms = appointments.filter(a => a.status === 'MISSED' || (a.status === 'SCHEDULED' && isPast(addDays(new Date(a.scheduledDate), 7))));
+  const gracePeriodAppointments = appointments.filter(a => a.status === 'SCHEDULED' && isPast(new Date(a.scheduledDate)) && !isPast(addDays(new Date(a.scheduledDate), 7)));
 
   return (
     <div className="space-y-6">
@@ -234,19 +235,37 @@ export default function AppointmentsPage() {
         </div>
       </div>
 
-      {missedAppointments.length > 0 && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 mb-6">
-          <h3 className="text-red-400 font-bold mb-2">{missedAppointments.length} Missed/Overdue Appointments</h3>
-          <ul className="space-y-1">
-            {missedAppointments.slice(0, 5).map(app => (
-              <li key={app.id} className="text-sm text-red-200/80 flex justify-between">
-                <span>{app.studyId} - {app.visitType}</span>
-                <span>{format(new Date(app.scheduledDate), 'MMM d, yyyy')} ({app.contactAttempts?.length || 0} attempts)</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {overdueAlarms.length > 0 && (
+          <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
+            <h3 className="text-red-400 font-bold mb-2">🚨 Alertas: Fuera de ventana (> 7 días)</h3>
+            <ul className="space-y-1">
+              {overdueAlarms.slice(0, 5).map(app => (
+                <li key={app.id} className="text-sm text-red-200/80 flex justify-between">
+                  <span><Link href={`/appointments/${app.id}`} className="hover:underline">{app.studyId} - {app.visitType}</Link></span>
+                  <span>{format(new Date(app.scheduledDate), 'MMM d, yyyy')} ({app.contactAttempts?.length || 0} attempts)</span>
+                </li>
+              ))}
+              {overdueAlarms.length > 5 && <li className="text-xs text-red-400/60 pt-2">+ {overdueAlarms.length - 5} más...</li>}
+            </ul>
+          </div>
+        )}
+
+        {gracePeriodAppointments.length > 0 && (
+          <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+            <h3 className="text-yellow-400 font-bold mb-2">⚠️ Ventana Activa (En periodo de gracia de 7 días)</h3>
+            <ul className="space-y-1">
+              {gracePeriodAppointments.slice(0, 5).map(app => (
+                <li key={app.id} className="text-sm text-yellow-200/80 flex justify-between">
+                  <span><Link href={`/appointments/${app.id}`} className="hover:underline">{app.studyId} - {app.visitType}</Link></span>
+                  <span>{format(new Date(app.scheduledDate), 'MMM d, yyyy')}</span>
+                </li>
+              ))}
+              {gracePeriodAppointments.length > 5 && <li className="text-xs text-yellow-400/60 pt-2">+ {gracePeriodAppointments.length - 5} más...</li>}
+            </ul>
+          </div>
+        )}
+      </div>
 
       <div className="card p-4 flex flex-wrap gap-4 items-end">
         <div className="flex-1 min-w-[200px]">
