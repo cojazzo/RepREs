@@ -238,7 +238,7 @@ export default function AppointmentsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {overdueAlarms.length > 0 && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-            <h3 className="text-red-400 font-bold mb-2">🚨 Alertas: Fuera de ventana (> 7 días)</h3>
+            <h3 className="text-red-400 font-bold mb-2">🚨 Alertas: Fuera de ventana (&gt; 7 días)</h3>
             <ul className="space-y-1">
               {overdueAlarms.slice(0, 5).map(app => (
                 <li key={app.id} className="text-sm text-red-200/80 flex justify-between">
