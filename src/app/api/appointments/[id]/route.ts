@@ -30,7 +30,12 @@ export async function GET(
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
     }
 
-    return NextResponse.json(appointment);
+    return NextResponse.json({
+      ...appointment,
+      studyId: appointment.participant?.studyId || 'Unknown',
+      participantName: appointment.participant ? `${appointment.participant.firstName} ${appointment.participant.lastName}` : 'Unknown',
+      visitType: appointment.visit?.visitType || 'Unknown',
+    });
   } catch (error) {
     console.error('Error fetching appointment:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

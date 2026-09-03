@@ -85,7 +85,14 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(appointments);
+    const mapped = appointments.map(app => ({
+      ...app,
+      studyId: app.participant?.studyId || 'Unknown',
+      participantName: app.participant ? `${app.participant.firstName} ${app.participant.lastName}` : 'Unknown',
+      visitType: app.visit?.visitType || 'Unknown',
+    }));
+
+    return NextResponse.json(mapped);
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
