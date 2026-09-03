@@ -171,6 +171,8 @@ export async function POST(req: NextRequest) {
                         participantId: participant.id,
                         visitId: visit.id,
                         scheduledDate: schedDate,
+                        status: visit.visitType === 'BASELINE' ? 'COMPLETED' : 'SCHEDULED',
+                        completedAt: visit.visitType === 'BASELINE' ? schedDate : null,
                     },
                 });
             }
